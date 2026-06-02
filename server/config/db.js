@@ -7,10 +7,7 @@ const connectDB = () => {
   const maskedConnStr = mongoURI.replace(/:([^@:]+)@/, ':****@');
   console.log(`Attempting connection to MongoDB at: ${maskedConnStr}`);
 
-  mongoose.connect(mongoURI, {
-    useNewUrlParser: true,
-    useUnifiedTopology: true,
-  })
+  mongoose.connect(mongoURI)
   .then(() => console.log("MongoDB connected"))
   .catch(err => console.error("MongoDB connection error:", err.message));
 };

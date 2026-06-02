@@ -32,13 +32,29 @@ app.use('/api/music', musicRoutes);
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
+// Process error handlers for debugging
+process.on('uncaughtException', (err) => {
+  console.error('UNCAUGHT EXCEPTION:', err);
+});
+process.on('unhandledRejection', (reason, promise) => {
+  console.error('UNHANDLED REJECTION:', reason);
+});
+
 // Serve static assets in production
 if (process.env.NODE_ENV === 'production') {
   const clientBuildPath = path.join(__dirname, '../client/dist');
   app.use(express.static(clientBuildPath));
 
   app.get('*', (req, res) => {
-    res.sendFile(path.resolve(clientBuildPath, 'index.html'));
+    const indexPath = path.resolve(clientBuildPath, 'index.html');
+    res.sendFile(indexPath, (err) => {
+      if (err) {
+        res.status(200).json({ 
+          message: 'Mood Music Streamer API is running smoothly 🎵',
+          info: 'Frontend build not found, API is active.'
+        });
+      }
+    });
   });
 } else {
   // Health check endpoint for development
