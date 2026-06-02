@@ -6,6 +6,7 @@
   "main": "index.js",
   "scripts": {
     "install-all": "npm install && npm install --prefix server && npm install --prefix client --legacy-peer-deps",
+    "postinstall": "npm install --prefix server && npm install --prefix client --legacy-peer-deps",
     "build": "npm run install-all && npm run build --prefix client",
     "start": "node index.js",
     "server": "npm run dev --prefix server",
