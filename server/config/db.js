@@ -3,6 +3,10 @@ import mongoose from 'mongoose';
 const connectDB = () => {
   const mongoURI = process.env.MONGO_URI || 'mongodb://127.0.0.1:27017/mood-music-streamer';
 
+  // Mask password in logs if any
+  const maskedConnStr = mongoURI.replace(/:([^@:]+)@/, ':****@');
+  console.log(`Attempting connection to MongoDB at: ${maskedConnStr}`);
+
   mongoose.connect(mongoURI, {
     useNewUrlParser: true,
     useUnifiedTopology: true,
