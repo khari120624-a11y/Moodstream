@@ -1,0 +1,19 @@
+# Handle line endings automatically for files detected as text
+# and leave binary files alone.
+* text=auto
+
+# Ensure code and text files use normalized line endings
+*.js text
+*.jsx text
+*.html text
+*.css text
+*.json text
+*.md text
+
+# Mark binary files to prevent corruption during transfer
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.ico binary
+*.svg text
