@@ -1,7 +1,7 @@
 import mongoose from 'mongoose';
 
 const connectDB = () => {
-  const mongoURI = process.env.MONGO_URI || process.env.MONGODB_URI || process.env.MONGO_URL || 'mongodb://127.0.0.1:27017/mood-music-streamer';
+  const mongoURI = process.env.MONGO_URI || process.env.MONGODB_URI || process.env.MONGO_URL || process.env.MANGO_URI || 'mongodb://127.0.0.1:27017/mood-music-streamer';
 
   // Mask password in logs if any
   const maskedConnStr = mongoURI.replace(/:([^@:]+)@/, ':****@');
