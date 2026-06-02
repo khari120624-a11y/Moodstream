@@ -1,0 +1,18 @@
+{
+  "name": "mood-music-streamer-root",
+  "version": "1.0.0",
+  "description": "Mood-based music streaming web application with Spotify API fallback",
+  "type": "module",
+  "main": "index.js",
+  "scripts": {
+    "install-all": "npm install && npm install --prefix server && npm install --prefix client --legacy-peer-deps",
+    "build": "npm run install-all && npm run build --prefix client",
+    "start": "node index.js",
+    "server": "npm run dev --prefix server",
+    "client": "npm run dev --prefix client",
+    "dev": "concurrently \"npm run server\" \"npm run client\""
+  },
+  "dependencies": {
+    "concurrently": "^8.2.2"
+  }
+}
