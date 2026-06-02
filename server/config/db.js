@@ -7,10 +7,7 @@ const connectDB = async () => {
     const maskedConnStr = connStr.replace(/:([^@:]+)@/, ':****@');
     console.log(`Attempting connection to MongoDB at: ${maskedConnStr}`);
     
-    const conn = await mongoose.connect(connStr, {
-      useNewUrlParser: true,
-      useUnifiedTopology: true,
-    });
+    const conn = await mongoose.connect(connStr);
     
     console.log(`MongoDB Connected: ${conn.connection.host}`);
   } catch (error) {
