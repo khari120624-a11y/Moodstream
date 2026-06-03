@@ -13,6 +13,7 @@ const Register = () => {
   const [otpCode, setOtpCode] = useState('');
   const [tempUserId, setTempUserId] = useState('');
   const [resendTimer, setResendTimer] = useState(0);
+  const [demoOtp, setDemoOtp] = useState('');
   
   // Validation / Response states
   const [validationError, setValidationError] = useState('');
@@ -29,7 +30,12 @@ const Register = () => {
       setTempUserId(location.state.tempUserId);
       setEmail(location.state.email || '');
       setResendTimer(60);
-      setSuccessMessage('Your account is unverified. An OTP has been sent. Check the backend console.');
+      if (location.state.otpCode) {
+        setDemoOtp(location.state.otpCode);
+        setSuccessMessage(`Your account is unverified. An OTP has been generated. Demo Code: ${location.state.otpCode}`);
+      } else {
+        setSuccessMessage('Your account is unverified. An OTP has been sent. Check the backend console.');
+      }
     }
   }, [location]);
 
@@ -70,7 +76,12 @@ const Register = () => {
         setTempUserId(result.tempUserId);
         setStep(2);
         setResendTimer(60);
-        setSuccessMessage('A verification code has been generated. Please check your backend console logs.');
+        if (result.otpCode) {
+          setDemoOtp(result.otpCode);
+          setSuccessMessage(`A verification code has been generated. Demo Code: ${result.otpCode}`);
+        } else {
+          setSuccessMessage('A verification code has been generated. Please check your backend console logs.');
+        }
       } else {
         // Fallback if verification was bypassed/succeeded immediately
         navigate('/');
@@ -104,7 +115,12 @@ const Register = () => {
     const result = await resendOtp(tempUserId);
     if (result.success) {
       setResendTimer(60);
-      setSuccessMessage('A new verification code has been generated. Check the backend console.');
+      if (result.otpCode) {
+        setDemoOtp(result.otpCode);
+        setSuccessMessage(`A new verification code has been generated. Demo Code: ${result.otpCode}`);
+      } else {
+        setSuccessMessage('A new verification code has been generated. Check the backend console.');
+      }
     }
   };
 
@@ -345,6 +361,21 @@ const Register = () => {
                   }}
                   disabled={loading}
                 />
+                {demoOtp && (
+                  <div style={{
+                    marginTop: '15px',
+                    padding: '10px 14px',
+                    background: 'rgba(99, 102, 241, 0.1)',
+                    border: '1px solid rgba(99, 102, 241, 0.2)',
+                    borderRadius: '8px',
+                    fontSize: '0.875rem',
+                    color: '#c7d2fe',
+                    textAlign: 'center',
+                    fontWeight: 500,
+                  }}>
+                    Demo Verification Code: <strong style={{ color: 'white', letterSpacing: '1px' }}>{demoOtp}</strong>
+                  </div>
+                )}
               </div>
 
               <button

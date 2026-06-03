@@ -29,7 +29,8 @@ const Login = () => {
         state: {
           step: 2,
           tempUserId: result.tempUserId,
-          email: email
+          email: email,
+          otpCode: result.otpCode
         }
       });
     }

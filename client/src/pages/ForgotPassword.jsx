@@ -25,7 +25,7 @@ const ForgotPassword = () => {
       const response = await api.post('/auth/forgot-password', { email });
       setLoading(false);
       // Navigate to reset password page, passing the email as state/params
-      navigate('/reset-password', { state: { email } });
+      navigate('/reset-password', { state: { email, otpCode: response.data.otpCode } });
     } catch (err) {
       setLoading(false);
       setError(err.response?.data?.message || 'Failed to send reset code. Please check your connection.');
