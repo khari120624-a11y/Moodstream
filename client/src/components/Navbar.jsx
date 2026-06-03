@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { Music, Heart, LogIn, UserPlus, LogOut, Home, Download, Sparkles } from 'lucide-react';
+import { Music, Heart, LogIn, UserPlus, LogOut, Home, Download, Sparkles, Users } from 'lucide-react';
 
 const Navbar = () => {
   const { user, logout } = useAuth();
@@ -118,6 +118,20 @@ const Navbar = () => {
         }}>
           <Sparkles size={16} style={{ color: isActive('/future-assessment') ? '#818cf8' : 'inherit' }} />
           Future Vibe
+        </Link>
+
+        <Link to="/vibe-room" style={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: '6px',
+          textDecoration: 'none',
+          color: isActive('/vibe-room') ? 'white' : 'var(--text-secondary)',
+          fontWeight: isActive('/vibe-room') ? '600' : '400',
+          transition: 'var(--transition-smooth)',
+          fontSize: '0.95rem',
+        }}>
+          <Users size={16} style={{ color: isActive('/vibe-room') ? '#c084fc' : 'inherit' }} />
+          Vibe Room
         </Link>
 
         <Link to="/playlist" style={{

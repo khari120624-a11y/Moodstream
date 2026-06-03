@@ -2,11 +2,13 @@ import mongoose from 'mongoose';
 import User from '../models/User.js';
 import Playlist from '../models/Playlist.js';
 import Assessment from '../models/Assessment.js';
+import Room from '../models/Room.js';
 
 // In-memory local stores for offline fallback
 const mockUsers = [];
 const mockPlaylists = [];
 const mockAssessments = [];
+const mockRooms = [];
 
 // Check if mongoose is connected
 const isConnected = () => mongoose.connection.readyState === 1;
@@ -200,4 +202,67 @@ dbAssessment.create = async (assessmentData) => {
   const asm = new dbAssessment(assessmentData);
   await asm.save();
   return asm;
+};
+
+/**
+ * Room Model Constructor & Static Functions
+ */
+export function dbRoom(data) {
+  this._id = 'mock_rm_' + Math.random().toString(36).substr(2, 9);
+  this.id = this._id;
+  this.participants = [];
+  this.isPlaying = false;
+  this.createdAt = new Date();
+  this.updatedAt = new Date();
+
+  if (data) {
+    Object.assign(this, data);
+  }
+
+  this.save = async function () {
+    const idx = mockRooms.findIndex((r) => r.roomCode === this.roomCode);
+    if (idx !== -1) {
+      mockRooms[idx] = this;
+    } else {
+      mockRooms.push(this);
+    }
+    return this;
+  };
+}
+
+dbRoom.findOne = async (query) => {
+  if (isConnected()) {
+    try {
+      return await Room.findOne(query);
+    } catch (err) {
+      console.error('Mongoose findOne error, using mock:', err.message);
+    }
+  }
+
+  const key = Object.keys(query)[0];
+  const val = query[key];
+  const room = mockRooms.find((r) => r[key] === val) || null;
+
+  if (room && !room.save) {
+    room.save = async function () {
+      const idx = mockRooms.findIndex((r) => r.roomCode === this.roomCode);
+      if (idx !== -1) mockRooms[idx] = this;
+      return this;
+    };
+  }
+  return room;
+};
+
+dbRoom.create = async (roomData) => {
+  if (isConnected()) {
+    try {
+      return await Room.create(roomData);
+    } catch (err) {
+      console.error('Mongoose create error, using mock:', err.message);
+    }
+  }
+
+  const rm = new dbRoom(roomData);
+  await rm.save();
+  return rm;
 };

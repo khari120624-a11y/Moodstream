@@ -10,6 +10,7 @@ import Register from './pages/Register';
 import ForgotPassword from './pages/ForgotPassword';
 import ResetPassword from './pages/ResetPassword';
 import FutureAssessment from './pages/FutureAssessment';
+import VibeRoom from './pages/VibeRoom';
 
 function App() {
   const [currentTrack, setCurrentTrack] = useState(null);
@@ -108,6 +109,16 @@ function App() {
                 path="/future-assessment"
                 element={
                   <FutureAssessment
+                    playTrack={playTrack}
+                    currentTrack={currentTrack}
+                    isPlaying={isPlaying}
+                  />
+                }
+              />
+              <Route
+                path="/vibe-room"
+                element={
+                  <VibeRoom
                     playTrack={playTrack}
                     currentTrack={currentTrack}
                     isPlaying={isPlaying}
