@@ -41,6 +41,7 @@ export const AuthProvider = ({ children }) => {
         success: true, 
         verified: response.data.verified, 
         tempUserId: response.data.tempUserId,
+        otpCode: response.data.otpCode,
         message: response.data.message
       };
     } catch (err) {
@@ -79,7 +80,7 @@ export const AuthProvider = ({ children }) => {
     setError(null);
     try {
       const response = await api.post('/auth/resend-otp', { tempUserId });
-      return { success: true, message: response.data.message };
+      return { success: true, message: response.data.message, otpCode: response.data.otpCode };
     } catch (err) {
       const errMsg = err.response?.data?.message || 'Failed to resend code.';
       setError(errMsg);
@@ -107,6 +108,7 @@ export const AuthProvider = ({ children }) => {
           success: false,
           verified: false,
           tempUserId: err.response.data.tempUserId,
+          otpCode: err.response.data.otpCode,
           message: err.response.data.message,
         };
       }
