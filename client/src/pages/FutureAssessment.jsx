@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import SongCard from '../components/SongCard';
 import api from '../services/api';
-import { Sparkles, ArrowRight, ArrowLeft, Calendar, Music, Clock, AlertCircle, RefreshCw, ChevronRight } from 'lucide-react';
+import { Sparkles, ArrowRight, ArrowLeft, Calendar, Music, Clock, AlertCircle, RefreshCw, ChevronRight, Globe } from 'lucide-react';
 
 const MOODS_CONFIG = {
   happy: {
@@ -117,6 +117,7 @@ const FutureAssessment = ({ playTrack, currentTrack, isPlaying }) => {
   const [loading, setLoading] = useState(false);
   const [loadingHistory, setLoadingHistory] = useState(false);
   const [error, setError] = useState(null);
+  const [languageFilter, setLanguageFilter] = useState('all');
 
   // Sync user saved playlist to heart icon state
   useEffect(() => {
@@ -328,8 +329,13 @@ const FutureAssessment = ({ playTrack, currentTrack, isPlaying }) => {
   };
 
   const handlePlayFullQueue = () => {
-    if (songs.length === 0) return;
-    playTrack(songs[0], songs);
+    const getFilteredSongs = (songList) => {
+      if (languageFilter === 'all') return songList;
+      return songList.filter((song) => song.language === languageFilter);
+    };
+    const displaySongs = getFilteredSongs(songs);
+    if (displaySongs.length === 0) return;
+    playTrack(displaySongs[0], displaySongs);
     navigate('/now-playing');
   };
 
@@ -738,31 +744,111 @@ const FutureAssessment = ({ playTrack, currentTrack, isPlaying }) => {
 
               {/* Curated Playlist Section */}
               <div className="glass-panel" style={{ padding: '30px', borderRadius: '24px' }}>
-                <h3 style={{ fontSize: '1.25rem', marginBottom: '20px', display: 'flex', alignItems: 'center', gap: '10px' }}>
-                  <Music size={18} style={{ color: activeMoodData.accent }} />
-                  Curated Projected Tracklist
-                </h3>
+                <div style={{
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                  flexWrap: 'wrap',
+                  gap: '15px',
+                  marginBottom: '20px',
+                  borderBottom: '1px solid var(--border-glass)',
+                  paddingBottom: '16px',
+                }}>
+                  <h3 style={{ fontSize: '1.25rem', display: 'flex', alignItems: 'center', gap: '10px' }}>
+                    <Music size={18} style={{ color: activeMoodData.accent }} />
+                    Curated Projected Tracklist
+                  </h3>
+                  
+                  {/* Segmented Language Toggles */}
+                  <div style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '8px',
+                    background: 'rgba(255,255,255,0.02)',
+                    padding: '4px',
+                    borderRadius: '30px',
+                    border: '1px solid var(--border-glass)',
+                  }}>
+                    {[
+                      { id: 'all', label: 'All Languages', icon: <Globe size={14} /> },
+                      { id: 'english', label: '🇬🇧 English', icon: null },
+                      { id: 'indian', label: '🇮🇳 Indian', icon: null },
+                    ].map((tab) => (
+                      <button
+                        key={tab.id}
+                        onClick={() => setLanguageFilter(tab.id)}
+                        style={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '6px',
+                          border: 'none',
+                          background: languageFilter === tab.id ? 'rgba(99, 102, 241, 0.15)' : 'transparent',
+                          border: languageFilter === tab.id ? '1px solid rgba(99, 102, 241, 0.3)' : '1px solid transparent',
+                          color: languageFilter === tab.id ? '#a5b4fc' : 'var(--text-secondary)',
+                          padding: '4px 12px',
+                          borderRadius: '20px',
+                          cursor: 'pointer',
+                          fontSize: '0.8rem',
+                          fontWeight: 600,
+                          transition: 'var(--transition-smooth)',
+                        }}
+                        onMouseEnter={(e) => {
+                          if (languageFilter !== tab.id) {
+                            e.currentTarget.style.color = 'white';
+                            e.currentTarget.style.background = 'rgba(255,255,255,0.03)';
+                          }
+                        }}
+                        onMouseLeave={(e) => {
+                          if (languageFilter !== tab.id) {
+                            e.currentTarget.style.color = 'var(--text-secondary)';
+                            e.currentTarget.style.background = 'transparent';
+                          }
+                        }}
+                      >
+                        {tab.icon}
+                        {tab.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
 
                 {songs.length === 0 ? (
                   <div style={{ textAlign: 'center', padding: '40px 0', color: 'var(--text-secondary)' }}>
                     <RefreshCw size={24} className="spin-slow" style={{ marginBottom: '10px' }} />
                     <p>Fetching tracks...</p>
                   </div>
-                ) : (
-                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '16px' }}>
-                    {songs.map((song) => (
-                      <SongCard
-                        key={song.spotifyId || song.title}
-                        song={song}
-                        currentTrack={currentTrack}
-                        isPlaying={isPlaying}
-                        onPlayClick={(track) => playTrack(track, songs)}
-                        isSaved={isSongSaved(song)}
-                        onSaveToggle={handleSaveToggle}
-                      />
-                    ))}
-                  </div>
-                )}
+                ) : (() => {
+                  const getFilteredSongs = (songList) => {
+                    if (languageFilter === 'all') return songList;
+                    return songList.filter((song) => song.language === languageFilter);
+                  };
+                  const displaySongs = getFilteredSongs(songs);
+
+                  if (displaySongs.length === 0) {
+                    return (
+                      <div style={{ textAlign: 'center', padding: '40px 0', color: 'var(--text-secondary)' }}>
+                        <p style={{ color: 'white', marginBottom: '8px' }}>No songs found in this language</p>
+                        <p style={{ fontSize: '0.85rem' }}>Try switching back to 'All Languages' or another option.</p>
+                      </div>
+                    );
+                  }
+
+                  return (
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '16px' }}>
+                      {displaySongs.map((song) => (
+                        <SongCard
+                          key={song.spotifyId || song.title}
+                          song={song}
+                          currentTrack={currentTrack}
+                          isPlaying={isPlaying}
+                          onPlayClick={(track) => playTrack(track, displaySongs)}
+                          isSaved={isSongSaved(song)}
+                          onSaveToggle={handleSaveToggle}
+                        />
+                      ))}
+                    </div>
+                  );
+                })()}
               </div>
             </>
           ) : null}
