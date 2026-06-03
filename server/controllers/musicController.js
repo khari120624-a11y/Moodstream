@@ -1,5 +1,5 @@
 import { getTracksByMood, searchTracks } from '../services/spotifyService.js';
-import { dbPlaylist as Playlist } from '../utils/dbManager.js';
+import { dbPlaylist as Playlist, dbAssessment as Assessment } from '../utils/dbManager.js';
 
 /**
  * @desc    Get recommended tracks for a specific mood
@@ -200,5 +200,47 @@ export const getYouTubeId = async (req, res) => {
   } catch (error) {
     console.error('YouTube ID fetch failed:', error.message);
     res.status(500).json({ message: 'Server error retrieving video ID' });
+  }
+};
+
+/**
+ * @desc    Save a new mood assessment
+ * @route   POST /api/music/assessment
+ * @access  Private
+ */
+export const saveAssessment = async (req, res) => {
+  const { answers, projectedMood } = req.body;
+
+  if (!answers || !projectedMood) {
+    return res.status(400).json({ message: 'Answers and projected mood are required' });
+  }
+
+  try {
+    const assessment = await Assessment.create({
+      user: req.user.id,
+      answers,
+      projectedMood,
+    });
+
+    res.status(201).json(assessment);
+  } catch (error) {
+    console.error('Error saving assessment:', error.message);
+    res.status(500).json({ message: 'Server error saving assessment' });
+  }
+};
+
+/**
+ * @desc    Get user's past mood assessments
+ * @route   GET /api/music/assessment
+ * @access  Private
+ */
+export const getAssessments = async (req, res) => {
+  try {
+    const assessments = await Assessment.find({ user: req.user.id });
+    const sortedAssessments = [...assessments].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+    res.json(sortedAssessments);
+  } catch (error) {
+    console.error('Error fetching assessments:', error.message);
+    res.status(500).json({ message: 'Server error retrieving assessment history' });
   }
 };

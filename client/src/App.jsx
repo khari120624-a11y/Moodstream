@@ -9,6 +9,7 @@ import Login from './pages/Login';
 import Register from './pages/Register';
 import ForgotPassword from './pages/ForgotPassword';
 import ResetPassword from './pages/ResetPassword';
+import FutureAssessment from './pages/FutureAssessment';
 
 function App() {
   const [currentTrack, setCurrentTrack] = useState(null);
@@ -97,6 +98,16 @@ function App() {
                 path="/playlist"
                 element={
                   <Playlist
+                    playTrack={playTrack}
+                    currentTrack={currentTrack}
+                    isPlaying={isPlaying}
+                  />
+                }
+              />
+              <Route
+                path="/future-assessment"
+                element={
+                  <FutureAssessment
                     playTrack={playTrack}
                     currentTrack={currentTrack}
                     isPlaying={isPlaying}

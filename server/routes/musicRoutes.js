@@ -6,6 +6,8 @@ import {
   deleteSongFromPlaylist,
   searchSongs,
   getYouTubeId,
+  saveAssessment,
+  getAssessments,
 } from '../controllers/musicController.js';
 import protect from '../middleware/authMiddleware.js';
 
@@ -23,5 +25,10 @@ router.route('/playlist')
 
 router.route('/playlist/:trackId')
   .delete(protect, deleteSongFromPlaylist);
+
+// Protected routes to manage user mood assessments
+router.route('/assessment')
+  .get(protect, getAssessments)
+  .post(protect, saveAssessment);
 
 export default router;

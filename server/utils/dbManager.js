@@ -1,10 +1,12 @@
 import mongoose from 'mongoose';
 import User from '../models/User.js';
 import Playlist from '../models/Playlist.js';
+import Assessment from '../models/Assessment.js';
 
 // In-memory local stores for offline fallback
 const mockUsers = [];
 const mockPlaylists = [];
+const mockAssessments = [];
 
 // Check if mongoose is connected
 const isConnected = () => mongoose.connection.readyState === 1;
@@ -149,4 +151,53 @@ dbPlaylist.create = async (playlistData) => {
   const pl = new dbPlaylist(playlistData);
   await pl.save();
   return pl;
+};
+
+/**
+ * Assessment Model Constructor & Static Functions
+ */
+export function dbAssessment(data) {
+  this._id = 'mock_asm_' + Math.random().toString(36).substr(2, 9);
+  this.id = this._id;
+  this.createdAt = new Date();
+
+  if (data) {
+    Object.assign(this, data);
+  }
+
+  this.save = async function () {
+    const idx = mockAssessments.findIndex((a) => a._id === this._id);
+    if (idx !== -1) {
+      mockAssessments[idx] = this;
+    } else {
+      mockAssessments.push(this);
+    }
+    return this;
+  };
+}
+
+dbAssessment.find = async (query) => {
+  if (isConnected()) {
+    try {
+      return await Assessment.find(query);
+    } catch (err) {
+      console.error('Mongoose find error, using mock:', err.message);
+    }
+  }
+
+  return mockAssessments.filter((a) => a.user === query.user);
+};
+
+dbAssessment.create = async (assessmentData) => {
+  if (isConnected()) {
+    try {
+      return await Assessment.create(assessmentData);
+    } catch (err) {
+      console.error('Mongoose create error, using mock:', err.message);
+    }
+  }
+
+  const asm = new dbAssessment(assessmentData);
+  await asm.save();
+  return asm;
 };
