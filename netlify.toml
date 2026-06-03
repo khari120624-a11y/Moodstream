@@ -1,3 +1,14 @@
 [build]
   command = "npm --prefix client run build"
   publish = "client/dist"
+
+[[redirects]]
+  from = "/api/*"
+  to = "https://moodstream-2zap.onrender.com/api/:splat"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200

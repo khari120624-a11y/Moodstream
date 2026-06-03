@@ -2,7 +2,7 @@ import axios from 'axios';
 
 // Get backend API URL (resolves dynamically: points to port 5000 in local dev, and uses relative path /api in production)
 const API_URL = import.meta.env.VITE_API_URL || (
-  window.location.port === '5173'
+  import.meta.env.DEV
     ? `http://${window.location.hostname || 'localhost'}:5000/api`
     : '/api'
 );
