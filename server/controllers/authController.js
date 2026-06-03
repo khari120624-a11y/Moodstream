@@ -65,7 +65,6 @@ export const registerUser = async (req, res) => {
       res.status(201).json({
         verified: false,
         tempUserId: user.id,
-        otpCode: otp,
         message: 'OTP sent to email. Please verify.',
       });
     } else {
@@ -160,10 +159,7 @@ export const resendOtp = async (req, res) => {
     console.log(`│   Sent to: ${user.email}                           │`);
     console.log('└──────────────────────────────────────────────┘\n');
 
-    res.status(200).json({ 
-      message: 'New verification code has been sent',
-      otpCode: otp
-    });
+    res.status(200).json({ message: 'New verification code has been sent' });
   } catch (error) {
     console.error('Resend OTP error:', error);
     res.status(500).json({ message: 'Server error resending verification code' });
@@ -205,7 +201,6 @@ export const loginUser = async (req, res) => {
         return res.status(401).json({
           verified: false,
           tempUserId: user.id,
-          otpCode: otp,
           message: 'Your account is unverified. An OTP has been sent to complete registration.',
         });
       }
@@ -259,10 +254,7 @@ export const forgotPassword = async (req, res) => {
     console.log(`│   Sent to: ${email}                           │`);
     console.log('└──────────────────────────────────────────────┘\n');
 
-    res.status(200).json({ 
-      message: 'Password reset code sent to your email.',
-      otpCode: otp
-    });
+    res.status(200).json({ message: 'Password reset code sent to your email.' });
   } catch (error) {
     console.error('Forgot password error:', error);
     res.status(500).json({ message: 'Server error during password reset request' });

@@ -12,7 +12,6 @@ const ResetPassword = () => {
   const [otpCode, setOtpCode] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
-  const [demoOtp, setDemoOtp] = useState('');
   
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -22,9 +21,6 @@ const ResetPassword = () => {
     // Attempt to load email from navigation state
     if (location.state?.email) {
       setEmail(location.state.email);
-    }
-    if (location.state?.otpCode) {
-      setDemoOtp(location.state.otpCode);
     }
   }, [location]);
 
@@ -183,21 +179,6 @@ const ResetPassword = () => {
                 style={{ paddingLeft: '45px', letterSpacing: '2px', fontWeight: 600 }}
                 disabled={loading}
               />
-              {demoOtp && (
-                <div style={{
-                  marginTop: '8px',
-                  padding: '8px 12px',
-                  background: 'rgba(239, 68, 68, 0.1)',
-                  border: '1px solid rgba(239, 68, 68, 0.2)',
-                  borderRadius: '8px',
-                  fontSize: '0.8rem',
-                  color: '#fca5a5',
-                  textAlign: 'center',
-                  fontWeight: 500,
-                }}>
-                  Demo Reset Code: <strong style={{ color: 'white' }}>{demoOtp}</strong>
-                </div>
-              )}
             </div>
           </div>
 
