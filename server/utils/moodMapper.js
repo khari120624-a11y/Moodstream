@@ -71,6 +71,26 @@ export const moods = {
         previewUrl: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-6.mp3',
         mood: 'happy',
         language: 'indian'
+      },
+      {
+        spotifyId: 'fb_happy_ind_kol_1',
+        title: 'Hukum - Thalaivar Alappara',
+        artist: 'Anirudh Ravichander',
+        album: 'Jailer (Kollywood)',
+        imageUrl: 'https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=400&q=80',
+        previewUrl: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-13.mp3',
+        mood: 'happy',
+        language: 'indian'
+      },
+      {
+        spotifyId: 'fb_happy_ind_tol_1',
+        title: 'Naatu Naatu',
+        artist: 'M. M. Keeravani, Rahul Sipligunj',
+        album: 'RRR (Tollywood)',
+        imageUrl: 'https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=400&q=80',
+        previewUrl: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-14.mp3',
+        mood: 'happy',
+        language: 'indian'
       }
     ]
   },
@@ -144,6 +164,26 @@ export const moods = {
         album: 'Unplugged Classics',
         imageUrl: 'https://images.unsplash.com/photo-1489641499538-be3a887fa21e?w=400&q=80',
         previewUrl: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-9.mp3',
+        mood: 'sad',
+        language: 'indian'
+      },
+      {
+        spotifyId: 'fb_sad_ind_kol_1',
+        title: 'Kanave Kanave',
+        artist: 'Anirudh Ravichander',
+        album: 'David (Kollywood)',
+        imageUrl: 'https://images.unsplash.com/photo-1437419764061-2473afe69fc2?w=400&q=80',
+        previewUrl: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-10.mp3',
+        mood: 'sad',
+        language: 'indian'
+      },
+      {
+        spotifyId: 'fb_sad_ind_tol_1',
+        title: 'Adiga Adiga',
+        artist: 'Sid Sriram',
+        album: 'Ninnu Kori (Tollywood)',
+        imageUrl: 'https://images.unsplash.com/photo-1482862549707-f63cb32c5fd9?w=400&q=80',
+        previewUrl: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-11.mp3',
         mood: 'sad',
         language: 'indian'
       }
@@ -221,6 +261,26 @@ export const moods = {
         previewUrl: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-12.mp3',
         mood: 'energetic',
         language: 'indian'
+      },
+      {
+        spotifyId: 'fb_energy_ind_kol_1',
+        title: 'Arabic Kuthu',
+        artist: 'Anirudh Ravichander, Jonita Gandhi',
+        album: 'Beast (Kollywood)',
+        imageUrl: 'https://images.unsplash.com/photo-1508700115892-45ecd05ae2ad?w=400&q=80',
+        previewUrl: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-15.mp3',
+        mood: 'energetic',
+        language: 'indian'
+      },
+      {
+        spotifyId: 'fb_energy_ind_tol_1',
+        title: 'Dheemthana',
+        artist: 'Devi Sri Prasad',
+        album: 'Arya (Tollywood)',
+        imageUrl: 'https://images.unsplash.com/photo-1516450360452-9312f5e86fc7?w=400&q=80',
+        previewUrl: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-16.mp3',
+        mood: 'energetic',
+        language: 'indian'
       }
     ]
   },
@@ -294,6 +354,26 @@ export const moods = {
         album: 'Nirvana Vibes',
         imageUrl: 'https://images.unsplash.com/photo-1501386761578-eac5c94b800a?w=400&q=80',
         previewUrl: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-15.mp3',
+        mood: 'chill',
+        language: 'indian'
+      },
+      {
+        spotifyId: 'fb_chill_ind_kol_1',
+        title: 'Vaseegara (Lofi Chill)',
+        artist: 'Harris Jayaraj',
+        album: 'Minnale (Kollywood)',
+        imageUrl: 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=400&q=80',
+        previewUrl: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3',
+        mood: 'chill',
+        language: 'indian'
+      },
+      {
+        spotifyId: 'fb_chill_ind_tol_1',
+        title: 'Samayama',
+        artist: 'Sid Sriram',
+        album: 'Hi Nanna (Tollywood)',
+        imageUrl: 'https://images.unsplash.com/photo-1473116763269-255ea7b29a16?w=400&q=80',
+        previewUrl: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-2.mp3',
         mood: 'chill',
         language: 'indian'
       }
@@ -371,6 +451,26 @@ export const moods = {
         previewUrl: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-2.mp3',
         mood: 'focused',
         language: 'indian'
+      },
+      {
+        spotifyId: 'fb_focused_ind_kol_1',
+        title: 'Santoor Meditations (Tamil)',
+        artist: 'Tamil Santoor Project',
+        album: 'Peaceful Tamil Santoor (Kollywood)',
+        imageUrl: 'https://images.unsplash.com/photo-1456513080510-7bf3a84b82f8?w=400&q=80',
+        previewUrl: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-3.mp3',
+        mood: 'focused',
+        language: 'indian'
+      },
+      {
+        spotifyId: 'fb_focused_ind_tol_1',
+        title: 'Flute Meditation (Telugu)',
+        artist: 'Telugu Flute Project',
+        album: 'Calm Telugu Flute (Tollywood)',
+        imageUrl: 'https://images.unsplash.com/photo-1488190211105-8b0e65b80b4e?w=400&q=80',
+        previewUrl: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-4.mp3',
+        mood: 'focused',
+        language: 'indian'
       }
     ]
   },
@@ -444,6 +544,26 @@ export const moods = {
         album: 'Retro Unplugged',
         imageUrl: 'https://images.unsplash.com/photo-1518199266791-5375a83190b7?w=400&q=80',
         previewUrl: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-5.mp3',
+        mood: 'romantic',
+        language: 'indian'
+      },
+      {
+        spotifyId: 'fb_romantic_ind_kol_1',
+        title: 'Munbe Vaa',
+        artist: 'A. R. Rahman, Shreya Ghoshal',
+        album: 'Sillunu Oru Kaadhal (Kollywood)',
+        imageUrl: 'https://images.unsplash.com/photo-1518199266791-5375a83190b7?w=400&q=80',
+        previewUrl: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-5.mp3',
+        mood: 'romantic',
+        language: 'indian'
+      },
+      {
+        spotifyId: 'fb_romantic_ind_tol_1',
+        title: 'Inkem Inkem Inkem Kaavaale',
+        artist: 'Sid Sriram',
+        album: 'Geetha Govindam (Tollywood)',
+        imageUrl: 'https://images.unsplash.com/photo-1516450360452-9312f5e86fc7?w=400&q=80',
+        previewUrl: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-6.mp3',
         mood: 'romantic',
         language: 'indian'
       }

@@ -5,6 +5,7 @@ import MoodCard from '../components/MoodCard';
 import SongCard from '../components/SongCard';
 import api from '../services/api';
 import { Search, Globe, RefreshCw, AlertCircle, X, Music } from 'lucide-react';
+import { categorizeTrack } from '../services/songClassifier';
 
 const MOODS_CONFIG = {
   happy: {
@@ -62,6 +63,7 @@ const Home = ({ playTrack, currentTrack, isPlaying }) => {
 
   // Language filter: 'all', 'english', 'indian'
   const [languageFilter, setLanguageFilter] = useState('all');
+  const [indianSubFilter, setIndianSubFilter] = useState('all');
 
   const searchTimeoutRef = useRef(null);
 
@@ -122,6 +124,7 @@ const Home = ({ playTrack, currentTrack, isPlaying }) => {
     };
   }, [searchQuery]);
 
+
   // Fetch songs when a mood is selected
   const handleMoodSelect = async (moodKey) => {
     setSelectedMood(moodKey);
@@ -129,12 +132,19 @@ const Home = ({ playTrack, currentTrack, isPlaying }) => {
     setSearchQuery('');
     setSearchResults([]);
     setIsSearching(false);
+    setIndianSubFilter('all');
     
     setLoadingSongs(true);
     setError(null);
     try {
       const response = await api.get(`/music/mood/${moodKey}`);
-      setSongs(response.data);
+      const fetchedSongs = response.data;
+      setSongs(fetchedSongs);
+      
+      // Auto-play the first song of the selected mood preset and set the queue
+      if (fetchedSongs && fetchedSongs.length > 0) {
+        playTrack(fetchedSongs[0], fetchedSongs);
+      }
     } catch (err) {
       console.error('Error fetching mood tracks:', err);
       setError('Could not retrieve tracks for this mood. Please try again.');
@@ -156,6 +166,7 @@ const Home = ({ playTrack, currentTrack, isPlaying }) => {
     setSongs([]);
     setIsSearching(true);
     setLoadingSearch(true);
+    setIndianSubFilter('all');
     setError(null);
 
     try {
@@ -177,6 +188,7 @@ const Home = ({ playTrack, currentTrack, isPlaying }) => {
     setSearchQuery('');
     setSearchResults([]);
     setIsSearching(false);
+    setIndianSubFilter('all');
     setError(null);
   };
 
@@ -232,7 +244,11 @@ const Home = ({ playTrack, currentTrack, isPlaying }) => {
   // Apply Language Filters
   const getFilteredSongs = (songList) => {
     if (languageFilter === 'all') return songList;
-    return songList.filter((song) => song.language === languageFilter);
+    let filtered = songList.filter((song) => song.language === languageFilter);
+    if (languageFilter === 'indian' && indianSubFilter !== 'all') {
+      filtered = filtered.filter((song) => categorizeTrack(song) === indianSubFilter);
+    }
+    return filtered;
   };
 
   const displaySongs = isSearching ? getFilteredSongs(searchResults) : getFilteredSongs(songs);
@@ -366,55 +382,122 @@ const Home = ({ playTrack, currentTrack, isPlaying }) => {
         {/* Segmented Language Toggles */}
         <div style={{
           display: 'flex',
-          justifyContent: 'center',
+          flexDirection: 'column',
           alignItems: 'center',
-          gap: '10px',
-          background: 'rgba(255,255,255,0.02)',
-          padding: '6px',
-          borderRadius: '30px',
-          border: '1px solid var(--border-glass)',
+          gap: '12px',
           alignSelf: 'center',
+          marginBottom: '20px',
         }}>
-          {[
-            { id: 'all', label: 'All Languages', icon: <Globe size={14} /> },
-            { id: 'english', label: '🇬🇧 English', icon: null },
-            { id: 'indian', label: '🇮🇳 Indian', icon: null },
-          ].map((tab) => (
-            <button
-              key={tab.id}
-              onClick={() => setLanguageFilter(tab.id)}
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: '6px',
-                border: 'none',
-                background: languageFilter === tab.id ? 'rgba(99, 102, 241, 0.15)' : 'transparent',
-                border: languageFilter === tab.id ? '1px solid rgba(99, 102, 241, 0.3)' : '1px solid transparent',
-                color: languageFilter === tab.id ? '#a5b4fc' : 'var(--text-secondary)',
-                padding: '6px 16px',
-                borderRadius: '20px',
-                cursor: 'pointer',
-                fontSize: '0.85rem',
-                fontWeight: 600,
-                transition: 'var(--transition-smooth)',
-              }}
-              onMouseEnter={(e) => {
-                if (languageFilter !== tab.id) {
-                  e.currentTarget.style.color = 'white';
-                  e.currentTarget.style.background = 'rgba(255,255,255,0.03)';
-                }
-              }}
-              onMouseLeave={(e) => {
-                if (languageFilter !== tab.id) {
-                  e.currentTarget.style.color = 'var(--text-secondary)';
-                  e.currentTarget.style.background = 'transparent';
-                }
-              }}
+          <div style={{
+            display: 'flex',
+            justifyContent: 'center',
+            alignItems: 'center',
+            gap: '10px',
+            background: 'rgba(255,255,255,0.02)',
+            padding: '6px',
+            borderRadius: '30px',
+            border: '1px solid var(--border-glass)',
+          }}>
+            {[
+              { id: 'all', label: 'All Languages', icon: <Globe size={14} /> },
+              { id: 'english', label: '🇬🇧 Hollywood (English)', icon: null },
+              { id: 'indian', label: '🇮🇳 Indian', icon: null },
+            ].map((tab) => (
+              <button
+                key={tab.id}
+                type="button"
+                onClick={() => {
+                  setLanguageFilter(tab.id);
+                  setIndianSubFilter('all');
+                }}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                  border: 'none',
+                  background: languageFilter === tab.id ? 'rgba(99, 102, 241, 0.15)' : 'transparent',
+                  border: languageFilter === tab.id ? '1px solid rgba(99, 102, 241, 0.3)' : '1px solid transparent',
+                  color: languageFilter === tab.id ? '#a5b4fc' : 'var(--text-secondary)',
+                  padding: '6px 16px',
+                  borderRadius: '20px',
+                  cursor: 'pointer',
+                  fontSize: '0.85rem',
+                  fontWeight: 600,
+                  transition: 'var(--transition-smooth)',
+                }}
+                onMouseEnter={(e) => {
+                  if (languageFilter !== tab.id) {
+                    e.currentTarget.style.color = 'white';
+                    e.currentTarget.style.background = 'rgba(255,255,255,0.03)';
+                  }
+                }}
+                onMouseLeave={(e) => {
+                  if (languageFilter !== tab.id) {
+                    e.currentTarget.style.color = 'var(--text-secondary)';
+                    e.currentTarget.style.background = 'transparent';
+                  }
+                }}
+              >
+                {tab.icon}
+                {tab.label}
+              </button>
+            ))}
+          </div>
+
+          {/* Sub-industry filters for Indian */}
+          {languageFilter === 'indian' && (
+            <div style={{
+              display: 'flex',
+              justifyContent: 'center',
+              alignItems: 'center',
+              gap: '8px',
+              background: 'rgba(255,255,255,0.01)',
+              padding: '4px',
+              borderRadius: '20px',
+              border: '1px solid rgba(255,255,255,0.04)',
+            }}
+            className="fade-in"
             >
-              {tab.icon}
-              {tab.label}
-            </button>
-          ))}
+              {[
+                { id: 'all', label: 'All Indian' },
+                { id: 'bollywood', label: '🎬 Bollywood' },
+                { id: 'kollywood', label: '🦁 Kollywood' },
+                { id: 'tollywood', label: '🔥 Tollywood' },
+              ].map((subTab) => (
+                <button
+                  key={subTab.id}
+                  type="button"
+                  onClick={() => setIndianSubFilter(subTab.id)}
+                  style={{
+                    border: 'none',
+                    background: indianSubFilter === subTab.id ? 'rgba(168, 85, 247, 0.15)' : 'transparent',
+                    border: indianSubFilter === subTab.id ? '1px solid rgba(168, 85, 247, 0.3)' : '1px solid transparent',
+                    color: indianSubFilter === subTab.id ? '#c084fc' : 'var(--text-secondary)',
+                    padding: '4px 12px',
+                    borderRadius: '16px',
+                    cursor: 'pointer',
+                    fontSize: '0.8rem',
+                    fontWeight: 600,
+                    transition: 'var(--transition-smooth)',
+                  }}
+                  onMouseEnter={(e) => {
+                    if (indianSubFilter !== subTab.id) {
+                      e.currentTarget.style.color = 'white';
+                      e.currentTarget.style.background = 'rgba(255,255,255,0.02)';
+                    }
+                  }}
+                  onMouseLeave={(e) => {
+                    if (indianSubFilter !== subTab.id) {
+                      e.currentTarget.style.color = 'var(--text-secondary)';
+                      e.currentTarget.style.background = 'transparent';
+                    }
+                  }}
+                >
+                  {subTab.label}
+                </button>
+              ))}
+            </div>
+          )}
         </div>
       </div>
 

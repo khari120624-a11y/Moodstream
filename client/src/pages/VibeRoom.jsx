@@ -4,6 +4,7 @@ import { useAuth } from '../context/AuthContext';
 import SongCard from '../components/SongCard';
 import api from '../services/api';
 import { Users, Plus, Play, Pause, LogOut, Copy, Check, Sparkles, RefreshCw, AlertCircle, Music, Globe } from 'lucide-react';
+import { categorizeTrack } from '../services/songClassifier';
 
 const MOODS_CONFIG = {
   happy: { name: 'Happy', emoji: '☀️', color: 'linear-gradient(135deg, #FF9933 0%, #FF5577 100%)', accent: '#FF7744' },
@@ -25,8 +26,9 @@ const VibeRoom = ({ playTrack, currentTrack, isPlaying }) => {
   const [myMood, setMyMood] = useState('chill');
   const [savedTracks, setSavedTracks] = useState([]);
   const [languageFilter, setLanguageFilter] = useState('all');
-  
+  const [indianSubFilter, setIndianSubFilter] = useState('all');
   const [copied, setCopied] = useState(false);
+
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [pollingActive, setPollingActive] = useState(false);
@@ -191,7 +193,13 @@ const VibeRoom = ({ playTrack, currentTrack, isPlaying }) => {
     if (!roomCode) return;
     try {
       const response = await api.post('/room/mood', { roomCode, mood: moodKey });
-      setRoomStatus(response.data);
+      const newStatus = response.data;
+      setRoomStatus(newStatus);
+      
+      // Auto-play the first blended track of the room and sync
+      if (newStatus.tracks && newStatus.tracks.length > 0) {
+        handlePlaySongAndSync(newStatus.tracks[0]);
+      }
     } catch (err) {
       console.error('Error changing mood:', err);
     }
@@ -288,7 +296,11 @@ const VibeRoom = ({ playTrack, currentTrack, isPlaying }) => {
   const getFilteredSongs = (songList) => {
     if (!songList) return [];
     if (languageFilter === 'all') return songList;
-    return songList.filter((song) => song.language === languageFilter);
+    let filtered = songList.filter((song) => song.language === languageFilter);
+    if (languageFilter === 'indian' && indianSubFilter !== 'all') {
+      filtered = filtered.filter((song) => categorizeTrack(song) === indianSubFilter);
+    }
+    return filtered;
   };
 
   const displaySongs = getFilteredSongs(roomStatus?.tracks);
@@ -714,53 +726,119 @@ const VibeRoom = ({ playTrack, currentTrack, isPlaying }) => {
                 {/* Segmented Language Toggles */}
                 <div style={{
                   display: 'flex',
-                  alignItems: 'center',
+                  flexDirection: 'column',
+                  alignItems: 'flex-end',
                   gap: '8px',
-                  background: 'rgba(255,255,255,0.02)',
-                  padding: '4px',
-                  borderRadius: '30px',
-                  border: '1px solid var(--border-glass)',
                 }}>
-                  {[
-                    { id: 'all', label: 'All Languages', icon: <Globe size={14} /> },
-                    { id: 'english', label: '🇬🇧 English', icon: null },
-                    { id: 'indian', label: '🇮🇳 Indian', icon: null },
-                  ].map((tab) => (
-                    <button
-                      key={tab.id}
-                      onClick={() => setLanguageFilter(tab.id)}
-                      style={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '6px',
-                        border: 'none',
-                        background: languageFilter === tab.id ? 'rgba(168, 85, 247, 0.15)' : 'transparent',
-                        border: languageFilter === tab.id ? '1px solid rgba(168, 85, 247, 0.3)' : '1px solid transparent',
-                        color: languageFilter === tab.id ? '#c084fc' : 'var(--text-secondary)',
-                        padding: '4px 12px',
-                        borderRadius: '20px',
-                        cursor: 'pointer',
-                        fontSize: '0.8rem',
-                        fontWeight: 600,
-                        transition: 'var(--transition-smooth)',
-                      }}
-                      onMouseEnter={(e) => {
-                        if (languageFilter !== tab.id) {
-                          e.currentTarget.style.color = 'white';
-                          e.currentTarget.style.background = 'rgba(255,255,255,0.03)';
-                        }
-                      }}
-                      onMouseLeave={(e) => {
-                        if (languageFilter !== tab.id) {
-                          e.currentTarget.style.color = 'var(--text-secondary)';
-                          e.currentTarget.style.background = 'transparent';
-                        }
-                      }}
+                  <div style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '8px',
+                    background: 'rgba(255,255,255,0.02)',
+                    padding: '4px',
+                    borderRadius: '30px',
+                    border: '1px solid var(--border-glass)',
+                  }}>
+                    {[
+                      { id: 'all', label: 'All Languages', icon: <Globe size={14} /> },
+                      { id: 'english', label: '🇬🇧 Hollywood (English)', icon: null },
+                      { id: 'indian', label: '🇮🇳 Indian', icon: null },
+                    ].map((tab) => (
+                      <button
+                        key={tab.id}
+                        type="button"
+                        onClick={() => {
+                          setLanguageFilter(tab.id);
+                          setIndianSubFilter('all');
+                        }}
+                        style={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '6px',
+                          border: 'none',
+                          background: languageFilter === tab.id ? 'rgba(168, 85, 247, 0.15)' : 'transparent',
+                          border: languageFilter === tab.id ? '1px solid rgba(168, 85, 247, 0.3)' : '1px solid transparent',
+                          color: languageFilter === tab.id ? '#c084fc' : 'var(--text-secondary)',
+                          padding: '4px 12px',
+                          borderRadius: '20px',
+                          cursor: 'pointer',
+                          fontSize: '0.8rem',
+                          fontWeight: 600,
+                          transition: 'var(--transition-smooth)',
+                        }}
+                        onMouseEnter={(e) => {
+                          if (languageFilter !== tab.id) {
+                            e.currentTarget.style.color = 'white';
+                            e.currentTarget.style.background = 'rgba(255,255,255,0.03)';
+                          }
+                        }}
+                        onMouseLeave={(e) => {
+                          if (languageFilter !== tab.id) {
+                            e.currentTarget.style.color = 'var(--text-secondary)';
+                            e.currentTarget.style.background = 'transparent';
+                          }
+                        }}
+                      >
+                        {tab.icon}
+                        {tab.label}
+                      </button>
+                    ))}
+                  </div>
+
+                  {/* Sub-industry filters for Indian */}
+                  {languageFilter === 'indian' && (
+                    <div style={{
+                      display: 'flex',
+                      justifyContent: 'center',
+                      alignItems: 'center',
+                      gap: '6px',
+                      background: 'rgba(255,255,255,0.01)',
+                      padding: '3px',
+                      borderRadius: '20px',
+                      border: '1px solid rgba(255,255,255,0.04)',
+                    }}
+                    className="fade-in"
                     >
-                      {tab.icon}
-                      {tab.label}
-                    </button>
-                  ))}
+                      {[
+                        { id: 'all', label: 'All Indian' },
+                        { id: 'bollywood', label: '🎬 Bollywood' },
+                        { id: 'kollywood', label: '🦁 Kollywood' },
+                        { id: 'tollywood', label: '🔥 Tollywood' },
+                      ].map((subTab) => (
+                        <button
+                          key={subTab.id}
+                          type="button"
+                          onClick={() => setIndianSubFilter(subTab.id)}
+                          style={{
+                            border: 'none',
+                            background: indianSubFilter === subTab.id ? 'rgba(168, 85, 247, 0.15)' : 'transparent',
+                            border: indianSubFilter === subTab.id ? '1px solid rgba(168, 85, 247, 0.3)' : '1px solid transparent',
+                            color: indianSubFilter === subTab.id ? '#c084fc' : 'var(--text-secondary)',
+                            padding: '3px 10px',
+                            borderRadius: '16px',
+                            cursor: 'pointer',
+                            fontSize: '0.75rem',
+                            fontWeight: 600,
+                            transition: 'var(--transition-smooth)',
+                          }}
+                          onMouseEnter={(e) => {
+                            if (indianSubFilter !== subTab.id) {
+                              e.currentTarget.style.color = 'white';
+                              e.currentTarget.style.background = 'rgba(255,255,255,0.02)';
+                            }
+                          }}
+                          onMouseLeave={(e) => {
+                            if (indianSubFilter !== subTab.id) {
+                              e.currentTarget.style.color = 'var(--text-secondary)';
+                              e.currentTarget.style.background = 'transparent';
+                            }
+                          }}
+                        >
+                          {subTab.label}
+                        </button>
+                      ))}
+                    </div>
+                  )}
                 </div>
               </div>
 
