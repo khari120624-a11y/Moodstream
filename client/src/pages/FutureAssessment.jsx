@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import SongCard from '../components/SongCard';
 import api from '../services/api';
-import { categorizeTrack } from '../services/songClassifier';
+import { categorizeTrack, isIndianTrack } from '../services/songClassifier';
 import { Sparkles, ArrowRight, ArrowLeft, Calendar, Music, Clock, AlertCircle, RefreshCw, ChevronRight, Globe } from 'lucide-react';
 
 const MOODS_CONFIG = {
@@ -335,7 +335,11 @@ const FutureAssessment = ({ playTrack, currentTrack, isPlaying }) => {
   const getFilteredSongs = (songList) => {
     if (!songList) return [];
     if (languageFilter === 'all') return songList;
-    let filtered = songList.filter((song) => song.language === languageFilter);
+    const isIndian = languageFilter === 'indian';
+    let filtered = songList.filter((song) => {
+      const isSongInd = isIndianTrack(song);
+      return isIndian ? isSongInd : !isSongInd;
+    });
     if (languageFilter === 'indian' && indianSubFilter !== 'all') {
       filtered = filtered.filter((song) => categorizeTrack(song) === indianSubFilter);
     }

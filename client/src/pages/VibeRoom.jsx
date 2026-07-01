@@ -4,7 +4,7 @@ import { useAuth } from '../context/AuthContext';
 import SongCard from '../components/SongCard';
 import api from '../services/api';
 import { Users, Plus, Play, Pause, LogOut, Copy, Check, Sparkles, RefreshCw, AlertCircle, Music, Globe } from 'lucide-react';
-import { categorizeTrack } from '../services/songClassifier';
+import { categorizeTrack, isIndianTrack } from '../services/songClassifier';
 
 const MOODS_CONFIG = {
   happy: { name: 'Happy', emoji: '☀️', color: 'linear-gradient(135deg, #FF9933 0%, #FF5577 100%)', accent: '#FF7744' },
@@ -296,7 +296,11 @@ const VibeRoom = ({ playTrack, currentTrack, isPlaying }) => {
   const getFilteredSongs = (songList) => {
     if (!songList) return [];
     if (languageFilter === 'all') return songList;
-    let filtered = songList.filter((song) => song.language === languageFilter);
+    const isIndian = languageFilter === 'indian';
+    let filtered = songList.filter((song) => {
+      const isSongInd = isIndianTrack(song);
+      return isIndian ? isSongInd : !isSongInd;
+    });
     if (languageFilter === 'indian' && indianSubFilter !== 'all') {
       filtered = filtered.filter((song) => categorizeTrack(song) === indianSubFilter);
     }

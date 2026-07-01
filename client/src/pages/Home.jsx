@@ -5,7 +5,7 @@ import MoodCard from '../components/MoodCard';
 import SongCard from '../components/SongCard';
 import api from '../services/api';
 import { Search, Globe, RefreshCw, AlertCircle, X, Music } from 'lucide-react';
-import { categorizeTrack } from '../services/songClassifier';
+import { categorizeTrack, isIndianTrack } from '../services/songClassifier';
 
 const MOODS_CONFIG = {
   happy: {
@@ -243,8 +243,13 @@ const Home = ({ playTrack, currentTrack, isPlaying }) => {
 
   // Apply Language Filters
   const getFilteredSongs = (songList) => {
+    if (!songList) return [];
     if (languageFilter === 'all') return songList;
-    let filtered = songList.filter((song) => song.language === languageFilter);
+    const isIndian = languageFilter === 'indian';
+    let filtered = songList.filter((song) => {
+      const isSongInd = isIndianTrack(song);
+      return isIndian ? isSongInd : !isSongInd;
+    });
     if (languageFilter === 'indian' && indianSubFilter !== 'all') {
       filtered = filtered.filter((song) => categorizeTrack(song) === indianSubFilter);
     }
