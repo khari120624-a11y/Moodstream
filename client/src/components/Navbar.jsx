@@ -9,6 +9,13 @@ const Navbar = ({ searchQuery = '', setSearchQuery, onSearchSubmit }) => {
   const navigate = useNavigate();
   const [installPrompt, setInstallPrompt] = useState(null);
 
+  // Local state for smooth typing & cursor preservation
+  const [localQuery, setLocalQuery] = useState(searchQuery);
+
+  useEffect(() => {
+    setLocalQuery(searchQuery);
+  }, [searchQuery]);
+
   useEffect(() => {
     const handleBeforeInstallPrompt = (e) => {
       e.preventDefault();
@@ -32,6 +39,21 @@ const Navbar = ({ searchQuery = '', setSearchQuery, onSearchSubmit }) => {
     const { outcome } = await installPrompt.userChoice;
     console.log(`[PWA] User choice: ${outcome}`);
     setInstallPrompt(null);
+  };
+
+  const handleInputChange = (e) => {
+    const val = e.target.value;
+    setLocalQuery(val);
+    if (setSearchQuery) {
+      setSearchQuery(val);
+    }
+  };
+
+  const handleClear = () => {
+    setLocalQuery('');
+    if (setSearchQuery) {
+      setSearchQuery('');
+    }
   };
 
   const handleFormSubmit = (e) => {
@@ -135,9 +157,10 @@ const Navbar = ({ searchQuery = '', setSearchQuery, onSearchSubmit }) => {
             </span>
             <input
               type="text"
+              dir="ltr"
               placeholder="What do you want to play? (Search tracks, artists...)"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
+              value={localQuery}
+              onChange={handleInputChange}
               style={{
                 width: '100%',
                 padding: '10px 40px 10px 42px',
@@ -147,6 +170,9 @@ const Navbar = ({ searchQuery = '', setSearchQuery, onSearchSubmit }) => {
                 color: '#ffffff',
                 fontSize: '0.875rem',
                 outline: 'none',
+                textAlign: 'left',
+                direction: 'ltr',
+                unicodeBidi: 'normal',
                 transition: 'var(--transition-smooth)',
               }}
               onFocus={(e) => {
@@ -158,10 +184,10 @@ const Navbar = ({ searchQuery = '', setSearchQuery, onSearchSubmit }) => {
                 e.currentTarget.style.backgroundColor = '#242424';
               }}
             />
-            {searchQuery && (
+            {localQuery && (
               <button
                 type="button"
-                onClick={() => setSearchQuery('')}
+                onClick={handleClear}
                 style={{
                   position: 'absolute',
                   right: '12px',
