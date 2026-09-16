@@ -108,3 +108,44 @@ export const categorizeTrack = (song) => {
   // Default to Bollywood for Indian songs
   return 'bollywood';
 };
+
+/**
+ * Detects the mood of a track based on its metadata and keywords
+ * @param {Object} song
+ * @returns {string} - 'happy' | 'sad' | 'energetic' | 'chill' | 'focused' | 'romantic'
+ */
+export const detectSongMood = (song) => {
+  if (!song) return 'happy';
+  if (song.mood && song.mood !== 'search' && song.mood !== 'all') {
+    const m = song.mood.toLowerCase();
+    if (['happy', 'sad', 'energetic', 'chill', 'focused', 'romantic'].includes(m)) {
+      return m;
+    }
+  }
+
+  const text = `${song.title || ''} ${song.artist || ''} ${song.album || ''}`.toLowerCase();
+
+  // Romantic keywords
+  if (/love|romantic|pyaar|dil|heart|ishq|kaadhal|prema|romance|serenade|sweet|chura|pehle|janum|tera|meri|tum|ninnu|anandam/i.test(text)) {
+    return 'romantic';
+  }
+  // Energetic keywords
+  if (/mass|bgm|naatu|dance|beat|workout|energy|hyper|dj|dhol|remix|blast|party|bhangra|hukum|beast|dheemthana|high|thunder|peddi|sarrainodu|hot|og/i.test(text)) {
+    return 'energetic';
+  }
+  // Sad keywords
+  if (/sad|tear|alone|pain|tadap|silence|unplugged|broken|melancholy|rain|kanave|adiga|crying|sorry|miss|rubaroo/i.test(text)) {
+    return 'sad';
+  }
+  // Chill / Lofi keywords
+  if (/chill|lofi|breeze|lazy|cafe|ocean|relax|sunset|vaseegara|samayama|chai|peace|slow|madhuvaramae|singari|chinnu/i.test(text)) {
+    return 'chill';
+  }
+  // Focused keywords
+  if (/focus|study|binaural|instrumental|flute|santoor|meditation|yoga|mind|ambient|brain|magadheera|theme/i.test(text)) {
+    return 'focused';
+  }
+
+  return 'happy';
+};
+

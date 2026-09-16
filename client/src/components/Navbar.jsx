@@ -1,25 +1,22 @@
 import React, { useState, useEffect } from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { Music, Heart, LogIn, UserPlus, LogOut, Home, Download, Sparkles, Users } from 'lucide-react';
+import { Music, LogIn, UserPlus, LogOut, ChevronLeft, ChevronRight, Download, Search, User } from 'lucide-react';
 
-const Navbar = () => {
+const Navbar = ({ searchQuery, setSearchQuery, onSearchSubmit }) => {
   const { user, logout } = useAuth();
   const location = useLocation();
+  const navigate = useNavigate();
   const [installPrompt, setInstallPrompt] = useState(null);
 
   useEffect(() => {
     const handleBeforeInstallPrompt = (e) => {
-      // Prevent the mini-infobar from appearing on mobile
       e.preventDefault();
-      // Stash the event so it can be triggered later.
       setInstallPrompt(e);
-      console.log('[PWA] beforeinstallprompt event intercepted.');
     };
 
     window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
 
-    // Check if the app is already installed
     if (window.matchMedia('(display-mode: standalone)').matches) {
       setInstallPrompt(null);
     }
@@ -31,238 +28,227 @@ const Navbar = () => {
 
   const handleInstallClick = async () => {
     if (!installPrompt) return;
-    // Show the native install dialog
     installPrompt.prompt();
-    // Wait for the user to respond to the prompt
     const { outcome } = await installPrompt.userChoice;
-    console.log(`[PWA] User installation choice: ${outcome}`);
-    // Clear prompt state since it's single-use
+    console.log(`[PWA] User choice: ${outcome}`);
     setInstallPrompt(null);
   };
 
-  const isActive = (path) => location.pathname === path;
-
   return (
-    <nav className="glass-panel" style={{
-      margin: '20px 20px 0 20px',
-      padding: '15px 30px',
+    <nav style={{
+      height: '64px',
+      padding: '0 24px',
       display: 'flex',
-      justifyContent: 'space-between',
       alignItems: 'center',
-      borderRadius: '16px',
-      position: 'sticky',
-      top: '20px',
-      zIndex: 1000,
+      justifyContent: 'space-between',
+      backgroundColor: '#000000',
+      zIndex: 900,
+      userSelect: 'none',
+      borderBottom: '1px solid rgba(255, 255, 255, 0.05)',
     }}>
-      {/* Brand logo */}
-      <Link to="/" style={{
-        display: 'flex',
-        alignItems: 'center',
-        gap: '10px',
-        textDecoration: 'none',
-        color: 'white',
-      }}>
-        <div style={{
-          background: 'linear-gradient(135deg, #6366f1 0%, #a855f7 100%)',
-          padding: '8px',
-          borderRadius: '10px',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          boxShadow: '0 0 15px rgba(99, 102, 241, 0.4)',
-        }}>
-          <Music size={20} />
+      {/* Left section: History Back/Forward Navigation & Logo */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <button
+            onClick={() => navigate(-1)}
+            style={{
+              width: '32px',
+              height: '32px',
+              borderRadius: '50%',
+              backgroundColor: '#090909',
+              border: '1px solid rgba(255,255,255,0.1)',
+              color: 'white',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              cursor: 'pointer',
+              transition: 'var(--transition-smooth)',
+            }}
+            onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#1e1e1e'}
+            onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#090909'}
+            title="Go Back"
+          >
+            <ChevronLeft size={18} />
+          </button>
+          <button
+            onClick={() => navigate(1)}
+            style={{
+              width: '32px',
+              height: '32px',
+              borderRadius: '50%',
+              backgroundColor: '#090909',
+              border: '1px solid rgba(255,255,255,0.1)',
+              color: 'white',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              cursor: 'pointer',
+              transition: 'var(--transition-smooth)',
+            }}
+            onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#1e1e1e'}
+            onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#090909'}
+            title="Go Forward"
+          >
+            <ChevronRight size={18} />
+          </button>
         </div>
-        <span style={{
-          fontFamily: 'var(--font-display)',
-          fontWeight: 800,
-          fontSize: '1.4rem',
-          letterSpacing: '-0.03em',
-          background: 'linear-gradient(to right, #ffffff, #94a3b8)',
-          WebkitBackgroundClip: 'text',
-          WebkitTextFillColor: 'transparent',
-        }}>
-          MoodStream
-        </span>
-      </Link>
 
-      {/* Nav Links */}
-      <div style={{
-        display: 'flex',
-        alignItems: 'center',
-        gap: '24px',
-      }}>
+        {/* Brand Logo for Mobile view when Sidebar hidden */}
         <Link to="/" style={{
           display: 'flex',
           alignItems: 'center',
-          gap: '6px',
+          gap: '8px',
           textDecoration: 'none',
-          color: isActive('/') ? 'white' : 'var(--text-secondary)',
-          fontWeight: isActive('/') ? '600' : '400',
-          transition: 'var(--transition-smooth)',
-          fontSize: '0.95rem',
+          color: 'white',
         }}>
-          <Home size={16} />
-          Home
-        </Link>
-
-        <Link to="/future-assessment" style={{
-          display: 'flex',
-          alignItems: 'center',
-          gap: '6px',
-          textDecoration: 'none',
-          color: isActive('/future-assessment') ? 'white' : 'var(--text-secondary)',
-          fontWeight: isActive('/future-assessment') ? '600' : '400',
-          transition: 'var(--transition-smooth)',
-          fontSize: '0.95rem',
-        }}>
-          <Sparkles size={16} style={{ color: isActive('/future-assessment') ? '#818cf8' : 'inherit' }} />
-          Future Vibe
-        </Link>
-
-        <Link to="/vibe-room" style={{
-          display: 'flex',
-          alignItems: 'center',
-          gap: '6px',
-          textDecoration: 'none',
-          color: isActive('/vibe-room') ? 'white' : 'var(--text-secondary)',
-          fontWeight: isActive('/vibe-room') ? '600' : '400',
-          transition: 'var(--transition-smooth)',
-          fontSize: '0.95rem',
-        }}>
-          <Users size={16} style={{ color: isActive('/vibe-room') ? '#c084fc' : 'inherit' }} />
-          Vibe Room
-        </Link>
-
-        <Link to="/playlist" style={{
-          display: 'flex',
-          alignItems: 'center',
-          gap: '6px',
-          textDecoration: 'none',
-          color: isActive('/playlist') ? 'white' : 'var(--text-secondary)',
-          fontWeight: isActive('/playlist') ? '600' : '400',
-          transition: 'var(--transition-smooth)',
-          fontSize: '0.95rem',
-        }}>
-          <Heart size={16} style={{ color: isActive('/playlist') ? '#ef4444' : 'inherit' }} />
-          My Playlist
+          <span style={{
+            fontFamily: 'var(--font-display)',
+            fontWeight: 800,
+            fontSize: '1.25rem',
+            color: '#ffffff',
+          }}>
+            MoodStream
+          </span>
         </Link>
       </div>
 
-      {/* User Session Buttons */}
-      <div style={{
-        display: 'flex',
-        alignItems: 'center',
-        gap: '16px',
-      }}>
-        {/* PWA Install Button */}
+      {/* Center Search Input */}
+      {setSearchQuery && (
+        <div style={{ flex: 1, maxWidth: '440px', margin: '0 20px' }}>
+          <form onSubmit={onSearchSubmit} style={{ position: 'relative', width: '100%' }}>
+            <span style={{
+              position: 'absolute',
+              left: '14px',
+              top: '50%',
+              transform: 'translateY(-50%)',
+              color: '#b3b3b3',
+              display: 'flex',
+              alignItems: 'center',
+              pointerEvents: 'none',
+            }}>
+              <Search size={18} />
+            </span>
+            <input
+              type="text"
+              placeholder="What do you want to play?"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              style={{
+                width: '100%',
+                padding: '10px 16px 10px 42px',
+                borderRadius: '50px',
+                backgroundColor: '#242424',
+                border: '1px solid transparent',
+                color: '#ffffff',
+                fontSize: '0.875rem',
+                outline: 'none',
+                transition: 'var(--transition-smooth)',
+              }}
+              onFocus={(e) => e.currentTarget.style.borderColor = '#ffffff'}
+              onBlur={(e) => e.currentTarget.style.borderColor = 'transparent'}
+            />
+          </form>
+        </div>
+      )}
+
+      {/* Right User Actions */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
         {installPrompt && (
           <button
             onClick={handleInstallClick}
             style={{
-              background: 'linear-gradient(135deg, #10b981 0%, #06b6d4 100%)',
-              color: 'white',
+              backgroundColor: '#ffffff',
+              color: '#000000',
               border: 'none',
-              padding: '8px 16px',
-              borderRadius: '8px',
+              padding: '6px 14px',
+              borderRadius: '20px',
               display: 'flex',
               alignItems: 'center',
-              gap: '8px',
+              gap: '6px',
               cursor: 'pointer',
-              fontWeight: 600,
-              fontSize: '0.9rem',
-              boxShadow: '0 4px 15px rgba(16, 185, 129, 0.3)',
+              fontWeight: 700,
+              fontSize: '0.8rem',
               transition: 'var(--transition-smooth)',
             }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.transform = 'scale(1.03)';
-              e.currentTarget.style.boxShadow = '0 6px 20px rgba(16, 185, 129, 0.5)';
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.transform = 'scale(1)';
-              e.currentTarget.style.boxShadow = '0 4px 15px rgba(16, 185, 129, 0.3)';
-            }}
+            onMouseEnter={(e) => e.currentTarget.style.transform = 'scale(1.04)'}
+            onMouseLeave={(e) => e.currentTarget.style.transform = 'scale(1)'}
           >
-            <Download size={16} />
+            <Download size={14} />
             Install App
           </button>
         )}
 
         {user ? (
-          <div style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: '16px',
-          }}>
-            <span style={{
-              fontSize: '0.9rem',
-              color: 'var(--text-secondary)',
-              background: 'rgba(255,255,255,0.05)',
-              padding: '6px 12px',
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+            <div style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '8px',
+              backgroundColor: '#1f1f1f',
+              padding: '4px 12px 4px 6px',
               borderRadius: '20px',
-              border: '1px solid var(--border-glass)',
-            }}>
-              Hi, <strong style={{ color: 'white' }}>{user.username}</strong>
-            </span>
-            <button
-              onClick={logout}
-              className="glass-card"
-              style={{
+              cursor: 'pointer',
+            }}
+            onClick={() => navigate('/playlist')}
+            >
+              <div style={{
+                width: '28px',
+                height: '28px',
+                borderRadius: '50%',
+                backgroundColor: '#1db954',
+                color: '#000000',
                 display: 'flex',
                 alignItems: 'center',
-                gap: '8px',
-                padding: '8px 16px',
-                borderRadius: '8px',
-                border: '1px solid var(--border-glass)',
-                color: '#fca5a5',
+                justifyContent: 'center',
+                fontWeight: 800,
+                fontSize: '0.85rem',
+              }}>
+                {user.username ? user.username.charAt(0).toUpperCase() : 'U'}
+              </div>
+              <span style={{ fontSize: '0.85rem', fontWeight: 600, color: 'white' }}>
+                {user.username}
+              </span>
+            </div>
+
+            <button
+              onClick={logout}
+              style={{
+                background: 'none',
+                border: 'none',
+                color: 'var(--text-secondary)',
                 cursor: 'pointer',
-                fontWeight: 500,
-                fontSize: '0.9rem',
-                background: 'rgba(239, 68, 68, 0.1)',
+                display: 'flex',
+                alignItems: 'center',
+                padding: '6px',
+                borderRadius: '50%',
                 transition: 'var(--transition-smooth)',
               }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.background = 'rgba(239, 68, 68, 0.2)';
-                e.currentTarget.style.borderColor = 'rgba(239, 68, 68, 0.4)';
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.background = 'rgba(239, 68, 68, 0.1)';
-                e.currentTarget.style.borderColor = 'var(--border-glass)';
-              }}
+              onMouseEnter={(e) => e.currentTarget.style.color = '#ef4444'}
+              onMouseLeave={(e) => e.currentTarget.style.color = 'var(--text-secondary)'}
+              title="Logout"
             >
-              <LogOut size={16} />
-              Logout
+              <LogOut size={18} />
             </button>
           </div>
         ) : (
-          <div style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: '12px',
-          }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
             <Link to="/login" style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: '6px',
               textDecoration: 'none',
-              color: 'var(--text-primary)',
+              color: 'var(--text-secondary)',
               fontSize: '0.9rem',
+              fontWeight: 700,
               padding: '8px 16px',
-              borderRadius: '8px',
-              transition: 'var(--transition-smooth)',
             }}
-            onMouseEnter={(e) => e.currentTarget.style.background = 'rgba(255,255,255,0.05)'}
-            onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
+            onMouseEnter={(e) => e.currentTarget.style.color = '#ffffff'}
+            onMouseLeave={(e) => e.currentTarget.style.color = 'var(--text-secondary)'}
             >
-              <LogIn size={16} />
-              Login
+              Log in
             </Link>
             <Link to="/register" className="glow-button" style={{
-              padding: '8px 16px',
-              fontSize: '0.9rem',
+              padding: '8px 20px',
+              fontSize: '0.875rem',
             }}>
-              <UserPlus size={16} />
-              Sign Up
+              Sign up
             </Link>
           </div>
         )}

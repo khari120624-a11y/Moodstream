@@ -3,8 +3,9 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import MoodCard from '../components/MoodCard';
 import SongCard from '../components/SongCard';
+import TrackTable from '../components/TrackTable';
 import api from '../services/api';
-import { Search, Globe, RefreshCw, AlertCircle, X, Music } from 'lucide-react';
+import { Search, RefreshCw, X, Play, Music, Sparkles } from 'lucide-react';
 import { categorizeTrack, isIndianTrack } from '../services/songClassifier';
 
 const MOODS_CONFIG = {
@@ -46,28 +47,41 @@ const MOODS_CONFIG = {
   },
 };
 
-const Home = ({ playTrack, currentTrack, isPlaying }) => {
+const Home = ({
+  playTrack,
+  currentTrack,
+  isPlaying,
+  searchQuery,
+  setSearchQuery,
+  selectedMood,
+  setSelectedMood,
+}) => {
   const { user } = useAuth();
   const navigate = useNavigate();
-  const [selectedMood, setSelectedMood] = useState(null);
   const [songs, setSongs] = useState([]);
   const [savedTracks, setSavedTracks] = useState([]);
   const [loadingSongs, setLoadingSongs] = useState(false);
   const [error, setError] = useState(null);
 
-  // Search states
-  const [searchQuery, setSearchQuery] = useState('');
+  // Search state
   const [searchResults, setSearchResults] = useState([]);
   const [loadingSearch, setLoadingSearch] = useState(false);
   const [isSearching, setIsSearching] = useState(false);
 
-  // Language filter: 'all', 'english', 'indian'
-  const [languageFilter, setLanguageFilter] = useState('all');
-  const [indianSubFilter, setIndianSubFilter] = useState('all');
+  // Filter Pills
+  const [activeCategory, setActiveCategory] = useState('all');
 
   const searchTimeoutRef = useRef(null);
 
-  // Load user's saved playlist to synchronize active heart icons
+  // Time-based greeting
+  const getGreeting = () => {
+    const hour = new Date().getHours();
+    if (hour < 12) return 'Good morning';
+    if (hour < 18) return 'Good afternoon';
+    return 'Good evening';
+  };
+
+  // Load saved playlist to sync heart icons
   useEffect(() => {
     const fetchSavedPlaylist = async () => {
       if (!user) {
@@ -78,16 +92,16 @@ const Home = ({ playTrack, currentTrack, isPlaying }) => {
         const response = await api.get('/music/playlist');
         setSavedTracks(response.data);
       } catch (err) {
-        console.error('Error fetching user playlist:', err);
+        console.error('Error fetching playlist:', err);
       }
     };
 
     fetchSavedPlaylist();
   }, [user]);
 
-  // Debounced auto-search as user types
+  // Debounced Auto-Search
   useEffect(() => {
-    if (!searchQuery.trim()) {
+    if (!searchQuery || !searchQuery.trim()) {
       if (isSearching) {
         setSearchResults([]);
         setIsSearching(false);
@@ -110,8 +124,8 @@ const Home = ({ playTrack, currentTrack, isPlaying }) => {
         const response = await api.get(`/music/search?q=${encodeURIComponent(searchQuery)}`);
         setSearchResults(response.data);
       } catch (err) {
-        console.error('Error searching songs:', err);
-        setError('Search request failed. Please check your network.');
+        console.error('Error searching:', err);
+        setError('Search request failed.');
       } finally {
         setLoadingSearch(false);
       }
@@ -124,84 +138,47 @@ const Home = ({ playTrack, currentTrack, isPlaying }) => {
     };
   }, [searchQuery]);
 
-
-  // Fetch songs when a mood is selected
+  // Handle Mood Click
   const handleMoodSelect = async (moodKey) => {
     setSelectedMood(moodKey);
-    // Clear search states when switching to mood mode
     setSearchQuery('');
     setSearchResults([]);
     setIsSearching(false);
-    setIndianSubFilter('all');
-    
+
     setLoadingSongs(true);
     setError(null);
     try {
       const response = await api.get(`/music/mood/${moodKey}`);
       const fetchedSongs = response.data;
       setSongs(fetchedSongs);
-      
-      // Auto-play the first song of the selected mood preset and set the queue
+
       if (fetchedSongs && fetchedSongs.length > 0) {
         playTrack(fetchedSongs[0], fetchedSongs);
       }
     } catch (err) {
       console.error('Error fetching mood tracks:', err);
-      setError('Could not retrieve tracks for this mood. Please try again.');
+      setError('Could not retrieve tracks for this mood.');
     } finally {
       setLoadingSongs(false);
     }
   };
 
-  // Handle immediate form submit
-  const handleSearchSubmit = async (e) => {
-    e.preventDefault();
-    if (!searchQuery.trim()) return;
-
-    if (searchTimeoutRef.current) {
-      clearTimeout(searchTimeoutRef.current);
-    }
-
-    setSelectedMood(null);
-    setSongs([]);
-    setIsSearching(true);
-    setLoadingSearch(true);
-    setIndianSubFilter('all');
-    setError(null);
-
-    try {
-      const response = await api.get(`/music/search?q=${encodeURIComponent(searchQuery)}`);
-      setSearchResults(response.data);
-    } catch (err) {
-      console.error('Error searching songs:', err);
-      setError('Search request failed. Please check your network.');
-    } finally {
-      setLoadingSearch(false);
-    }
-  };
-
-  // Clear search and return to landing state
   const clearSearch = () => {
-    if (searchTimeoutRef.current) {
-      clearTimeout(searchTimeoutRef.current);
-    }
+    if (searchTimeoutRef.current) clearTimeout(searchTimeoutRef.current);
     setSearchQuery('');
     setSearchResults([]);
     setIsSearching(false);
-    setIndianSubFilter('all');
     setError(null);
   };
 
-  // Check if a song is already saved in the user's playlist
   const isSongSaved = (song) => {
     return savedTracks.some(
       (track) =>
         (song.spotifyId && track.spotifyId === song.spotifyId) ||
-        (!song.spotifyId && track.title.toLowerCase() === song.title.toLowerCase() && track.artist.toLowerCase() === song.artist.toLowerCase())
+        (!song.spotifyId && track.title?.toLowerCase() === song.title?.toLowerCase() && track.artist?.toLowerCase() === song.artist?.toLowerCase())
     );
   };
 
-  // Toggle saving/removing a song
   const handleSaveToggle = async (song) => {
     try {
       const alreadySaved = isSongSaved(song);
@@ -210,9 +187,8 @@ const Home = ({ playTrack, currentTrack, isPlaying }) => {
         const savedTrack = savedTracks.find(
           (track) =>
             (song.spotifyId && track.spotifyId === song.spotifyId) ||
-            (!song.spotifyId && track.title.toLowerCase() === song.title.toLowerCase() && track.artist.toLowerCase() === song.artist.toLowerCase())
+            (!song.spotifyId && track.title?.toLowerCase() === song.title?.toLowerCase() && track.artist?.toLowerCase() === song.artist?.toLowerCase())
         );
-        
         const deleteId = savedTrack._id || savedTrack.spotifyId;
         const response = await api.delete(`/music/playlist/${deleteId}`);
         setSavedTracks(response.data);
@@ -229,414 +205,199 @@ const Home = ({ playTrack, currentTrack, isPlaying }) => {
         setSavedTracks(response.data);
       }
     } catch (err) {
-      console.error('Error toggling song save state:', err);
-      alert(err.response?.data?.message || 'Failed to update playlist');
+      console.error('Error toggling song save:', err);
     }
   };
 
-  const handlePlayClick = (song) => {
-    const queue = isSearching ? searchResults : songs;
-    // Pass current track and relevant queue
-    playTrack(song, queue);
-    navigate('/now-playing');
+  const handlePlayClick = (song, activeList) => {
+    const list = activeList || (isSearching ? searchResults : songs);
+    playTrack(song, list);
   };
 
-  // Apply Language Filters
-  const getFilteredSongs = (songList) => {
-    if (!songList) return [];
-    if (languageFilter === 'all') return songList;
-    const isIndian = languageFilter === 'indian';
-    let filtered = songList.filter((song) => {
-      const isSongInd = isIndianTrack(song);
-      return isIndian ? isSongInd : !isSongInd;
-    });
-    if (languageFilter === 'indian' && indianSubFilter !== 'all') {
-      filtered = filtered.filter((song) => categorizeTrack(song) === indianSubFilter);
-    }
-    return filtered;
-  };
+  // Quick picks list
+  const quickPicks = [
+    { id: 'qp-1', title: 'Trending Now Telugu', query: 'Trending Now Telugu', imageUrl: 'https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?auto=format&fit=crop&w=300&q=80' },
+    { id: 'qp-2', title: 'Peddi (TELUGU)', query: 'Peddi Telugu', imageUrl: 'https://images.unsplash.com/photo-1470225620780-dba8ba36b745?auto=format&fit=crop&w=300&q=80' },
+    { id: 'qp-3', title: 'Ninnu Chuse Anandamlo', query: 'Ninnu Chuse Anandamlo Dacoit', imageUrl: 'https://images.unsplash.com/photo-1514525253161-7a46d19cd819?auto=format&fit=crop&w=300&q=80' },
+    { id: 'qp-4', title: 'OG Telugu songs', query: 'OG Telugu songs', imageUrl: 'https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?auto=format&fit=crop&w=300&q=80' },
+    { id: 'qp-5', title: 'Sarrainodu Hits', query: 'Sarrainodu songs', imageUrl: 'https://images.unsplash.com/photo-1459749411175-04bf5292ceea?auto=format&fit=crop&w=300&q=80' },
+    { id: 'qp-6', title: 'Hot Hits Telugu', query: 'Hot Hits Telugu', imageUrl: 'https://images.unsplash.com/photo-1511379938547-c1f69419868d?auto=format&fit=crop&w=300&q=80' },
+    { id: 'qp-7', title: 'Rubaroo Telugu', query: 'Rubaroo Dacoit', imageUrl: 'https://images.unsplash.com/photo-1487180144351-b8472da7d491?auto=format&fit=crop&w=300&q=80' },
+    { id: 'qp-8', title: 'Liked Songs', isLikedSongs: true, imageUrl: null },
+  ];
 
-  const displaySongs = isSearching ? getFilteredSongs(searchResults) : getFilteredSongs(songs);
+  // Jump Back In cards
+  const jumpBackInItems = [
+    { id: 'jbi-1', title: 'Telugu Mass BGM', subtitle: 'Mass Beats & Themes', tag: 'Playlist', query: 'Telugu mass BGM songs', imageUrl: 'https://images.unsplash.com/photo-1508700115892-45ecd05ae2ad?auto=format&fit=crop&w=400&q=80' },
+    { id: 'jbi-2', title: 'Singari', subtitle: 'Sai Abhyankkar', tag: 'Single', query: 'Singari Dude Telugu', imageUrl: 'https://images.unsplash.com/photo-1465847899084-d164df4dedc6?auto=format&fit=crop&w=400&q=80' },
+    { id: 'jbi-3', title: 'Chinnu', subtitle: 'G. V. Prakash Kumar', tag: 'Single', query: 'Chinnu Dude', imageUrl: 'https://images.unsplash.com/photo-1518609878373-06d740f60d8b?auto=format&fit=crop&w=400&q=80' },
+    { id: 'jbi-4', title: 'Madhuvaramae', subtitle: 'Sid Sriram', tag: 'Single', query: 'Madhuvaramae Leon James', imageUrl: 'https://images.unsplash.com/photo-1501386761578-eac5c94b800a?auto=format&fit=crop&w=400&q=80' },
+    { id: 'jbi-5', title: 'Magadheera Theme', subtitle: 'M. M. Keeravaani', tag: 'Playlist', query: 'Magadheera BGM', imageUrl: 'https://images.unsplash.com/photo-1514525253161-7a46d19cd819?auto=format&fit=crop&w=400&q=80' }
+  ];
 
   return (
-    <div style={{
-      padding: '40px 20px',
-      maxWidth: '1200px',
-      margin: '0 auto',
-      minHeight: 'calc(100vh - 120px)',
-      paddingBottom: currentTrack ? '140px' : '40px',
-    }}>
+    <div style={{ padding: '24px', paddingBottom: currentTrack ? '140px' : '60px', width: '100%', maxWidth: '1400px', margin: '0 auto' }}>
       
-      {/* Title Hero Banner */}
-      <div style={{
-        textAlign: 'center',
-        marginBottom: '35px',
-      }}>
-        <h1 style={{
-          fontSize: '2.5rem',
-          fontWeight: 800,
-          marginBottom: '10px',
-          fontFamily: 'var(--font-display)',
-          background: 'linear-gradient(to right, #ffffff, #c7d2fe)',
-          WebkitBackgroundClip: 'text',
-          WebkitTextFillColor: 'transparent',
-        }}>
-          How is your energy today?
-        </h1>
-        <p style={{
-          color: 'var(--text-secondary)',
-          fontSize: '1.025rem',
-          maxWidth: '500px',
-          margin: '0 auto',
-        }}>
-          Search for songs directly or select a mood preset below to match your vibe.
-        </p>
+      {/* Category Pills Header */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '24px', overflowX: 'auto' }}>
+        <button onClick={() => setActiveCategory('all')} className={`spotify-pill ${activeCategory === 'all' ? 'active' : ''}`}>
+          All
+        </button>
+        <button onClick={() => setActiveCategory('music')} className={`spotify-pill ${activeCategory === 'music' ? 'active' : ''}`}>
+          Music
+        </button>
+        <button onClick={() => setActiveCategory('podcasts')} className={`spotify-pill ${activeCategory === 'podcasts' ? 'active' : ''}`}>
+          Podcasts
+        </button>
+        <button onClick={() => setActiveCategory('moods')} className={`spotify-pill ${activeCategory === 'moods' ? 'active' : ''}`}>
+          Moods
+        </button>
       </div>
 
-      {/* SEARCH BAR & FILTERS SECTION */}
-      <div style={{
-        maxWidth: '680px',
-        margin: '0 auto 40px auto',
-        display: 'flex',
-        flexDirection: 'column',
-        gap: '15px',
-      }}>
-        <form onSubmit={handleSearchSubmit} style={{ display: 'flex', gap: '12px', width: '100%' }}>
-          <div style={{ position: 'relative', flex: 1 }}>
-            <span style={{
-              position: 'absolute',
-              left: '16px',
-              top: '50%',
-              transform: 'translateY(-50%)',
-              color: 'var(--text-muted)',
-              display: 'flex',
-              alignItems: 'center',
-              pointerEvents: 'none',
-            }}>
-              <Search size={20} />
-            </span>
-            <input
-              type="text"
-              className="form-input"
-              placeholder="Search songs, artists, or genres (e.g. 'Tum Hi Ho', 'Sunshine')..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              style={{
-                paddingLeft: '50px',
-                paddingRight: searchQuery ? '45px' : '16px',
-                fontSize: '1.05rem',
-                borderRadius: '24px',
-                border: '1px solid rgba(255, 255, 255, 0.1)',
-                background: 'rgba(22, 24, 30, 0.65)',
-                width: '100%',
-              }}
+      {/* SEARCH RESULTS VIEW */}
+      {isSearching ? (
+        <div style={{ marginBottom: '40px' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+            <h2 style={{ fontSize: '1.5rem', fontWeight: 800 }}>Search Results for "{searchQuery}"</h2>
+            <button onClick={clearSearch} style={{ background: 'none', border: 'none', color: '#1db954', cursor: 'pointer', fontWeight: 700 }}>
+              Close Search
+            </button>
+          </div>
+
+          {loadingSearch ? (
+            <div style={{ padding: '60px 0', textAlign: 'center', color: 'var(--text-secondary)' }}>
+              <RefreshCw size={28} className="spin-slow" style={{ marginBottom: '12px' }} />
+              <p>Searching tracks on Spotify...</p>
+            </div>
+          ) : searchResults.length > 0 ? (
+            <TrackTable
+              tracks={searchResults}
+              currentTrack={currentTrack}
+              isPlaying={isPlaying}
+              onPlayClick={(song) => handlePlayClick(song, searchResults)}
+              savedTracks={savedTracks}
+              onSaveToggle={handleSaveToggle}
             />
-            {searchQuery && (
-              <button
-                type="button"
-                onClick={clearSearch}
-                style={{
-                  position: 'absolute',
-                  right: '16px',
-                  top: '50%',
-                  transform: 'translateY(-50%)',
-                  background: 'none',
-                  border: 'none',
-                  color: 'var(--text-muted)',
-                  cursor: 'pointer',
-                  display: 'flex',
-                  alignItems: 'center',
-                  transition: 'var(--transition-smooth)',
-                }}
-                onMouseEnter={(e) => e.currentTarget.style.color = 'white'}
-                onMouseLeave={(e) => e.currentTarget.style.color = 'var(--text-muted)'}
-              >
-                <X size={18} />
-              </button>
-            )}
-          </div>
-          <button
-            type="submit"
-            className="btn btn-primary"
-            style={{
-              borderRadius: '24px',
-              padding: '0 24px',
-              whiteSpace: 'nowrap',
-              fontSize: '0.95rem',
-              fontWeight: 600,
-              background: 'linear-gradient(to right, #6366f1, #4f46e5)',
-              border: 'none',
-              color: 'white',
-              cursor: 'pointer',
-              boxShadow: '0 4px 15px rgba(99, 102, 241, 0.25)',
-              transition: 'all 0.2s ease',
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.transform = 'translateY(-1px)';
-              e.currentTarget.style.boxShadow = '0 6px 20px rgba(99, 102, 241, 0.35)';
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.transform = 'none';
-              e.currentTarget.style.boxShadow = '0 4px 15px rgba(99, 102, 241, 0.25)';
-            }}
-          >
-            Search
-          </button>
-        </form>
+          ) : (
+            <p style={{ color: 'var(--text-muted)' }}>No results found.</p>
+          )}
+        </div>
+      ) : (
+        <>
+          {/* GREETING & QUICK PICKS GRID */}
+          <div style={{ marginBottom: '36px' }}>
+            <h1 style={{ fontSize: '1.8rem', fontWeight: 800, marginBottom: '18px', letterSpacing: '-0.02em' }}>
+              {getGreeting()}
+            </h1>
 
-        {/* Segmented Language Toggles */}
-        <div style={{
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-          gap: '12px',
-          alignSelf: 'center',
-          marginBottom: '20px',
-        }}>
-          <div style={{
-            display: 'flex',
-            justifyContent: 'center',
-            alignItems: 'center',
-            gap: '10px',
-            background: 'rgba(255,255,255,0.02)',
-            padding: '6px',
-            borderRadius: '30px',
-            border: '1px solid var(--border-glass)',
-          }}>
-            {[
-              { id: 'all', label: 'All Languages', icon: <Globe size={14} /> },
-              { id: 'english', label: '🇬🇧 Hollywood (English)', icon: null },
-              { id: 'indian', label: '🇮🇳 Indian', icon: null },
-            ].map((tab) => (
-              <button
-                key={tab.id}
-                type="button"
-                onClick={() => {
-                  setLanguageFilter(tab.id);
-                  setIndianSubFilter('all');
-                }}
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '6px',
-                  border: 'none',
-                  background: languageFilter === tab.id ? 'rgba(99, 102, 241, 0.15)' : 'transparent',
-                  border: languageFilter === tab.id ? '1px solid rgba(99, 102, 241, 0.3)' : '1px solid transparent',
-                  color: languageFilter === tab.id ? '#a5b4fc' : 'var(--text-secondary)',
-                  padding: '6px 16px',
-                  borderRadius: '20px',
-                  cursor: 'pointer',
-                  fontSize: '0.85rem',
-                  fontWeight: 600,
-                  transition: 'var(--transition-smooth)',
-                }}
-                onMouseEnter={(e) => {
-                  if (languageFilter !== tab.id) {
-                    e.currentTarget.style.color = 'white';
-                    e.currentTarget.style.background = 'rgba(255,255,255,0.03)';
-                  }
-                }}
-                onMouseLeave={(e) => {
-                  if (languageFilter !== tab.id) {
-                    e.currentTarget.style.color = 'var(--text-secondary)';
-                    e.currentTarget.style.background = 'transparent';
-                  }
-                }}
-              >
-                {tab.icon}
-                {tab.label}
-              </button>
-            ))}
-          </div>
-
-          {/* Sub-industry filters for Indian */}
-          {languageFilter === 'indian' && (
-            <div style={{
-              display: 'flex',
-              justifyContent: 'center',
-              alignItems: 'center',
-              gap: '8px',
-              background: 'rgba(255,255,255,0.01)',
-              padding: '4px',
-              borderRadius: '20px',
-              border: '1px solid rgba(255,255,255,0.04)',
-            }}
-            className="fade-in"
-            >
-              {[
-                { id: 'all', label: 'All Indian' },
-                { id: 'bollywood', label: '🎬 Bollywood' },
-                { id: 'kollywood', label: '🦁 Kollywood' },
-                { id: 'tollywood', label: '🔥 Tollywood' },
-              ].map((subTab) => (
-                <button
-                  key={subTab.id}
-                  type="button"
-                  onClick={() => setIndianSubFilter(subTab.id)}
-                  style={{
-                    border: 'none',
-                    background: indianSubFilter === subTab.id ? 'rgba(168, 85, 247, 0.15)' : 'transparent',
-                    border: indianSubFilter === subTab.id ? '1px solid rgba(168, 85, 247, 0.3)' : '1px solid transparent',
-                    color: indianSubFilter === subTab.id ? '#c084fc' : 'var(--text-secondary)',
-                    padding: '4px 12px',
-                    borderRadius: '16px',
-                    cursor: 'pointer',
-                    fontSize: '0.8rem',
-                    fontWeight: 600,
-                    transition: 'var(--transition-smooth)',
-                  }}
-                  onMouseEnter={(e) => {
-                    if (indianSubFilter !== subTab.id) {
-                      e.currentTarget.style.color = 'white';
-                      e.currentTarget.style.background = 'rgba(255,255,255,0.02)';
-                    }
-                  }}
-                  onMouseLeave={(e) => {
-                    if (indianSubFilter !== subTab.id) {
-                      e.currentTarget.style.color = 'var(--text-secondary)';
-                      e.currentTarget.style.background = 'transparent';
-                    }
+            <div className="quick-picks-grid">
+              {quickPicks.map((item) => (
+                <div
+                  key={item.id}
+                  className="quick-pick-card"
+                  onClick={() => {
+                    if (item.isLikedSongs) navigate('/playlist');
+                    else setSearchQuery(item.query);
                   }}
                 >
-                  {subTab.label}
-                </button>
+                  <div className="img-box">
+                    {item.isLikedSongs ? (
+                      <div style={{ width: '100%', height: '100%', background: 'linear-gradient(135deg, #450af5 0%, #8e8ee5 100%)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#ffffff' }}>
+                        <Music size={22} />
+                      </div>
+                    ) : (
+                      <img src={item.imageUrl} alt={item.title} />
+                    )}
+                  </div>
+                  <span className="title">{item.title}</span>
+                  <div className="play-hover-btn">
+                    <Play size={18} fill="#000000" color="#000000" style={{ marginLeft: '2px' }} />
+                  </div>
+                </div>
               ))}
             </div>
-          )}
-        </div>
-      </div>
-
-      {/* Mood Grid Presets (visible when not active searching) */}
-      {!isSearching && (
-        <div style={{
-          display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))',
-          gap: '20px',
-          marginBottom: '50px',
-        }}>
-          {Object.entries(MOODS_CONFIG).map(([key, value]) => (
-            <MoodCard
-              key={key}
-              moodKey={key}
-              moodData={value}
-              isSelected={selectedMood === key}
-              onClick={() => handleMoodSelect(key)}
-            />
-          ))}
-        </div>
-      )}
-
-      {/* SONGS / RECOMMENDATION BOX */}
-      {(selectedMood || isSearching) && (
-        <div
-          className="glass-panel"
-          style={{
-            padding: '30px',
-            borderRadius: '20px',
-            border: '1px solid rgba(255,255,255,0.06)',
-            boxShadow: isSearching
-              ? '0 20px 40px rgba(0,0,0,0.3)'
-              : `0 20px 40px rgba(0,0,0,0.3), 0 0 50px ${MOODS_CONFIG[selectedMood].accent}10`,
-          }}
-        >
-          {/* Section Header */}
-          <div style={{
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'center',
-            marginBottom: '24px',
-            borderBottom: '1px solid var(--border-glass)',
-            paddingBottom: '16px',
-          }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-              <span style={{ fontSize: '1.8rem' }}>
-                {isSearching ? '🔍' : MOODS_CONFIG[selectedMood].emoji}
-              </span>
-              <div>
-                <h3 style={{ fontSize: '1.3rem', fontWeight: 700, color: 'white' }}>
-                  {isSearching ? `Search Results for "${searchQuery}"` : `${MOODS_CONFIG[selectedMood].name} Mix`}
-                </h3>
-                <p style={{ fontSize: '0.825rem', color: 'var(--text-secondary)' }}>
-                  {isSearching
-                    ? `Displaying matching tracks (${displaySongs.length} found)`
-                    : 'Fresh soundtracks custom curated for your vibe'}
-                </p>
-              </div>
-            </div>
-
-            {(loadingSongs || loadingSearch) && (
-              <span style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: '8px',
-                color: '#818cf8',
-                fontSize: '0.9rem',
-              }}>
-                <RefreshCw size={16} className="spin-slow" style={{ animationDuration: '2s' }} />
-                Refreshing...
-              </span>
-            )}
           </div>
 
-          {/* Error display */}
-          {error && (
-            <div className="alert-box alert-danger" style={{ justifyContent: 'center' }}>
-              <AlertCircle size={20} />
-              <span>{error}</span>
+          {/* JUMP BACK IN ROW */}
+          <div style={{ marginBottom: '40px' }}>
+            <h2 style={{ fontSize: '1.4rem', fontWeight: 800, marginBottom: '16px' }}>
+              Jump back in
+            </h2>
+            <div className="scroll-row">
+              {jumpBackInItems.map((item) => (
+                <div
+                  key={item.id}
+                  className="media-card"
+                  onClick={() => setSearchQuery(item.query)}
+                >
+                  <div className="art-container">
+                    <img src={item.imageUrl} alt={item.title} />
+                    <div className="play-btn-overlay">
+                      <Play size={20} fill="#000000" color="#000000" style={{ marginLeft: '2px' }} />
+                    </div>
+                  </div>
+                  <div className="type-tag">{item.tag}</div>
+                  <div className="card-title">{item.title}</div>
+                  <div className="card-subtitle">{item.subtitle}</div>
+                </div>
+              ))}
             </div>
-          )}
+          </div>
 
-          {/* Loading spinner */}
-          {(loadingSongs && songs.length === 0) || (loadingSearch && searchResults.length === 0) ? (
-            <div style={{
-              display: 'flex',
-              flexDirection: 'column',
-              alignItems: 'center',
-              justifyContent: 'center',
-              padding: '60px 0',
-              color: 'var(--text-secondary)',
-            }}>
-              <RefreshCw size={36} className="spin-slow" style={{ animationDuration: '2.5s', marginBottom: '15px', color: '#818cf8' }} />
-              <p>Analyzing audio wavelengths...</p>
-            </div>
-          ) : displaySongs.length === 0 ? (
-            /* Empty State */
-            <div style={{
-              display: 'flex',
-              flexDirection: 'column',
-              alignItems: 'center',
-              justifyContent: 'center',
-              padding: '60px 20px',
-              color: 'var(--text-secondary)',
-              textAlign: 'center',
-            }}>
-              <Music size={40} style={{ color: 'var(--text-muted)', marginBottom: '16px' }} />
-              <p style={{ fontSize: '1rem', color: 'white', marginBottom: '6px' }}>No songs found</p>
-              <p style={{ fontSize: '0.875rem', color: 'var(--text-secondary)', maxWidth: '360px' }}>
-                There are no tracks matching your current filters. Try changing the language filter, or search for other keywords.
-              </p>
-            </div>
-          ) : (
-            /* Results display grid */
+          {/* CHOOSE YOUR MOOD GRID */}
+          <div style={{ marginBottom: '40px' }}>
+            <h2 style={{ fontSize: '1.4rem', fontWeight: 800, marginBottom: '16px' }}>
+              Choose your mood
+            </h2>
             <div style={{
               display: 'grid',
-              gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
+              gridTemplateColumns: 'repeat(auto-fill, minmax(160px, 1fr))',
               gap: '16px',
             }}>
-              {displaySongs.map((song) => (
-                <SongCard
-                  key={song.spotifyId || song.title}
-                  song={song}
-                  currentTrack={currentTrack}
-                  isPlaying={isPlaying}
-                  onPlayClick={handlePlayClick}
-                  isSaved={isSongSaved(song)}
-                  onSaveToggle={handleSaveToggle}
+              {Object.entries(MOODS_CONFIG).map(([key, config]) => (
+                <MoodCard
+                  key={key}
+                  moodKey={key}
+                  mood={config}
+                  isSelected={selectedMood === key}
+                  onSelect={handleMoodSelect}
                 />
               ))}
             </div>
+          </div>
+
+          {/* SELECTED MOOD TRACKS TABLE */}
+          {selectedMood && (
+            <div style={{ marginBottom: '40px' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '18px' }}>
+                <h2 style={{ fontSize: '1.4rem', fontWeight: 800, textTransform: 'capitalize' }}>
+                  {MOODS_CONFIG[selectedMood]?.emoji} {selectedMood} Tracks
+                </h2>
+                <button
+                  onClick={() => setSelectedMood(null)}
+                  style={{ background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', fontSize: '0.85rem' }}
+                >
+                  Close
+                </button>
+              </div>
+
+              {loadingSongs ? (
+                <div style={{ padding: '30px 0', color: 'var(--text-secondary)', textAlign: 'center' }}>
+                  Loading tracks...
+                </div>
+              ) : (
+                <TrackTable
+                  tracks={songs}
+                  currentTrack={currentTrack}
+                  isPlaying={isPlaying}
+                  onPlayClick={(song) => handlePlayClick(song, songs)}
+                  savedTracks={savedTracks}
+                  onSaveToggle={handleSaveToggle}
+                />
+              )}
+            </div>
           )}
-        </div>
+        </>
       )}
     </div>
   );
