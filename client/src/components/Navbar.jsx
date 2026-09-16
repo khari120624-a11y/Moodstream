@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { Music, LogIn, UserPlus, LogOut, ChevronLeft, ChevronRight, Download, Search, User } from 'lucide-react';
+import { Music, LogIn, UserPlus, LogOut, ChevronLeft, ChevronRight, Download, Search, X } from 'lucide-react';
 
-const Navbar = ({ searchQuery, setSearchQuery, onSearchSubmit }) => {
+const Navbar = ({ searchQuery = '', setSearchQuery, onSearchSubmit }) => {
   const { user, logout } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
@@ -34,6 +34,11 @@ const Navbar = ({ searchQuery, setSearchQuery, onSearchSubmit }) => {
     setInstallPrompt(null);
   };
 
+  const handleFormSubmit = (e) => {
+    e.preventDefault();
+    if (onSearchSubmit) onSearchSubmit(e);
+  };
+
   return (
     <nav style={{
       height: '64px',
@@ -44,10 +49,10 @@ const Navbar = ({ searchQuery, setSearchQuery, onSearchSubmit }) => {
       backgroundColor: '#000000',
       zIndex: 900,
       userSelect: 'none',
-      borderBottom: '1px solid rgba(255, 255, 255, 0.05)',
+      borderBottom: '1px solid rgba(255, 255, 255, 0.08)',
     }}>
       {/* Left section: History Back/Forward Navigation & Logo */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: '16px', flexShrink: 0 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
           <button
             onClick={() => navigate(-1)}
@@ -56,7 +61,7 @@ const Navbar = ({ searchQuery, setSearchQuery, onSearchSubmit }) => {
               height: '32px',
               borderRadius: '50%',
               backgroundColor: '#090909',
-              border: '1px solid rgba(255,255,255,0.1)',
+              border: '1px solid rgba(255,255,255,0.15)',
               color: 'white',
               display: 'flex',
               alignItems: 'center',
@@ -77,7 +82,7 @@ const Navbar = ({ searchQuery, setSearchQuery, onSearchSubmit }) => {
               height: '32px',
               borderRadius: '50%',
               backgroundColor: '#090909',
-              border: '1px solid rgba(255,255,255,0.1)',
+              border: '1px solid rgba(255,255,255,0.15)',
               color: 'white',
               display: 'flex',
               alignItems: 'center',
@@ -93,7 +98,6 @@ const Navbar = ({ searchQuery, setSearchQuery, onSearchSubmit }) => {
           </button>
         </div>
 
-        {/* Brand Logo for Mobile view when Sidebar hidden */}
         <Link to="/" style={{
           display: 'flex',
           alignItems: 'center',
@@ -114,45 +118,76 @@ const Navbar = ({ searchQuery, setSearchQuery, onSearchSubmit }) => {
 
       {/* Center Search Input */}
       {setSearchQuery && (
-        <div style={{ flex: 1, maxWidth: '440px', margin: '0 20px' }}>
-          <form onSubmit={onSearchSubmit} style={{ position: 'relative', width: '100%' }}>
+        <div style={{ flex: 1, maxWidth: '480px', margin: '0 20px' }}>
+          <form onSubmit={handleFormSubmit} style={{ position: 'relative', width: '100%' }}>
             <span style={{
               position: 'absolute',
               left: '14px',
               top: '50%',
               transform: 'translateY(-50%)',
-              color: '#b3b3b3',
+              color: '#ffffff',
               display: 'flex',
               alignItems: 'center',
               pointerEvents: 'none',
+              zIndex: 2,
             }}>
               <Search size={18} />
             </span>
             <input
               type="text"
-              placeholder="What do you want to play?"
+              placeholder="What do you want to play? (Search tracks, artists...)"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               style={{
                 width: '100%',
-                padding: '10px 16px 10px 42px',
+                padding: '10px 40px 10px 42px',
                 borderRadius: '50px',
                 backgroundColor: '#242424',
-                border: '1px solid transparent',
+                border: '1px solid rgba(255, 255, 255, 0.2)',
                 color: '#ffffff',
                 fontSize: '0.875rem',
                 outline: 'none',
                 transition: 'var(--transition-smooth)',
               }}
-              onFocus={(e) => e.currentTarget.style.borderColor = '#ffffff'}
-              onBlur={(e) => e.currentTarget.style.borderColor = 'transparent'}
+              onFocus={(e) => {
+                e.currentTarget.style.borderColor = '#1db954';
+                e.currentTarget.style.backgroundColor = '#2a2a2a';
+              }}
+              onBlur={(e) => {
+                e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.2)';
+                e.currentTarget.style.backgroundColor = '#242424';
+              }}
             />
+            {searchQuery && (
+              <button
+                type="button"
+                onClick={() => setSearchQuery('')}
+                style={{
+                  position: 'absolute',
+                  right: '12px',
+                  top: '50%',
+                  transform: 'translateY(-50%)',
+                  background: 'none',
+                  border: 'none',
+                  color: '#b3b3b3',
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  padding: '2px',
+                }}
+                onMouseEnter={(e) => e.currentTarget.style.color = '#ffffff'}
+                onMouseLeave={(e) => e.currentTarget.style.color = '#b3b3b3'}
+                title="Clear search"
+              >
+                <X size={16} />
+              </button>
+            )}
           </form>
         </div>
       )}
 
       {/* Right User Actions */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: '14px', flexShrink: 0 }}>
         {installPrompt && (
           <button
             onClick={handleInstallClick}
@@ -188,6 +223,7 @@ const Navbar = ({ searchQuery, setSearchQuery, onSearchSubmit }) => {
               padding: '4px 12px 4px 6px',
               borderRadius: '20px',
               cursor: 'pointer',
+              border: '1px solid rgba(255, 255, 255, 0.1)',
             }}
             onClick={() => navigate('/playlist')}
             >
