@@ -63,6 +63,16 @@ h1, h2, h3, h4, h5, h6 {
   letter-spacing: -0.02em;
 }
 
+/* Responsive Search Bar Utilities */
+@media (max-width: 640px) {
+  .desktop-search-container {
+    display: none !important;
+  }
+  .mobile-search-trigger {
+    display: flex !important;
+  }
+}
+
 /* Spotify Desktop Main Layout Grid */
 .spotify-app-container {
   display: flex;
